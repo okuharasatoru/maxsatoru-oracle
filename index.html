@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAXSATORU ORACLE</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3d1a78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MAXSATORU ORACLE">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Noto+Serif+JP:wght@300;400;700&display=swap');
+
+  :root {
+    --navy: #0a0e2e;
+    --deep-purple: #1a0a3e;
+    --purple: #3d1a78;
+    --violet: #6b2fa0;
+    --gold: #d4af37;
+    --gold-light: #f5d76e;
+    --silver: #c0c0c0;
+    --white: #f0eaf8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Noto Serif JP', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ===== 星空背景 ===== */
+  #starfield {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  /* 流れ星 */
+  .shooting-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: shoot var(--sd, 6s) ease-in infinite var(--sdelay, 0s);
+  }
+  .shooting-star::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 2px;
+    width: 80px; height: 1px;
+    background: linear-gradient(to left, white, transparent);
+  }
+
+  @keyframes shoot {
+    0% { transform: translate(0, 0) rotate(-45deg); opacity: 1; }
+    100% { transform: translate(300px, 300px) rotate(-45deg); opacity: 0; }
+  }
+
+  /* 星雲エフェクト */
+  .nebula {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+    animation: nebula-pulse 8s ease-in-out infinite;
+  }
+  .nebula-1 { width: 600px; height: 600px; background: #6b2fa0; top: -200px; left: -200px; }
+  .nebula-2 { width: 500px; height: 500px; background: #1a4fa0; bottom: -200px; right: -100px; animation-delay: 4s; }
+  .nebula-3 { width: 300px; height: 300px; background: #a02f6b; top: 40%; left: 40%; animation-delay: 2s; }
+
+  @keyframes nebula-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.12; }
+    50% { transform: scale(1.1); opacity: 0.2; }
+  }
+
+  /* ===== レイアウト ===== */
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ===== ヘッダー ===== */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeInDown 1.2s ease;
+  }
+
+  .header .crown {
+    font-size: 2.5rem;
+    animation: float 4s ease-in-out infinite;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 6vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 40%, var(--gold) 60%, #fff8dc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.1em;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(212,175,55,0.5));
+  }
+
+  .header .subtitle {
+    font-size: clamp(0.75rem, 2.5vw, 1rem);
+    color: var(--silver);
+    letter-spacing: 0.3em;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 400px;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
+  .divider-star { color: var(--gold); font-size: 1rem; animation: spin-slow 6s linear infinite; }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== フォームカード ===== */
+  .card {
+    background: linear-gradient(135deg, rgba(26,10,62,0.85) 0%, rgba(10,14,46,0.9) 100%);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 24px;
+    padding: clamp(24px, 5vw, 48px);
+    width: 100%;
+    max-width: 560px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 60px rgba(107,47,160,0.3), 0 0 120px rgba(107,47,160,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: fadeInUp 1.2s ease 0.3s both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at center, rgba(212,175,55,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-title {
+    text-align: center;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    color: var(--gold-light);
+    margin-bottom: 30px;
+    letter-spacing: 0.15em;
+    font-weight: 300;
+  }
+
+  /* ===== フォーム ===== */
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--silver);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  input[type="date"] {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 12px;
+    color: var(--white);
+    font-size: 1.1rem;
+    font-family: 'Noto Serif JP', serif;
+    transition: all 0.3s;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
+    cursor: pointer;
+  }
+
+  input[type="date"]:focus {
+    border-color: var(--gold);
+    background: rgba(212,175,55,0.07);
+    box-shadow: 0 0 20px rgba(212,175,55,0.2);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #4a1a8a 0%, var(--violet) 50%, #4a1a8a 100%);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    color: var(--gold-light);
+    font-size: 1.05rem;
+    font-family: 'Noto Serif JP', serif;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn:hover::before { left: 100%; }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(107,47,160,0.6), 0 0 20px rgba(212,175,55,0.3);
+    background: linear-gradient(135deg, var(--violet) 0%, #8040c0 50%, var(--violet) 100%);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  /* ===== ローディング ===== */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .loading.show { display: block; }
+
+  .crystal-ball {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    position: relative;
+    animation: crystal-float 2s ease-in-out infinite;
+  }
+
+  .crystal-ball-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #c8a8ff, #4a00a0 40%, #0a0030 80%);
+    box-shadow: 0 0 40px rgba(107,47,160,0.8), 0 0 80px rgba(107,47,160,0.4), inset 0 0 30px rgba(107,47,160,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .crystal-ball-shine {
+    position: absolute;
+    top: 15%; left: 20%;
+    width: 30%; height: 20%;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    filter: blur(5px);
+  }
+
+  .crystal-swirl {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60%; height: 60%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.3), transparent);
+    animation: swirl 2s linear infinite;
+  }
+
+  @keyframes swirl {
+    from { transform: translate(-50%, -50%) rotate(0deg) scale(0.5); opacity: 0.8; }
+    to { transform: translate(-50%, -50%) rotate(360deg) scale(1.2); opacity: 0; }
+  }
+
+  @keyframes crystal-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-15px) scale(1.05); }
+  }
+
+  .loading-text {
+    color: var(--silver);
+    letter-spacing: 0.2em;
+    font-size: 0.9rem;
+    animation: pulse-text 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-text {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== 結果 ===== */
+  .result {
+    display: none;
+    width: 100%;
+    max-width: 700px;
+    animation: fadeInUp 0.8s ease;
+  }
+
+  .result.show { display: block; }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .result-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  /* タブ */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 6px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--silver);
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(0.75rem, 2.5vw, 0.95rem);
+    letter-spacing: 0.1em;
+    transition: all 0.3s;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--purple), var(--violet));
+    color: var(--gold-light);
+    box-shadow: 0 4px 15px rgba(107,47,160,0.5);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 結果カード */
+  .result-card {
+    background: linear-gradient(135deg, rgba(26,10,62,0.9), rgba(10,14,46,0.95));
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 20px;
+    padding: clamp(20px, 4vw, 36px);
+    margin-bottom: 20px;
+    box-shadow: 0 0 40px rgba(107,47,160,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    right: 0; height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  /* 数字表示 */
+  .number-display {
+    text-align: center;
+    margin: 20px 0 30px;
+    position: relative;
+  }
+
+  .life-number {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(4rem, 15vw, 7rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, #fff8dc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    filter: drop-shadow(0 0 30px rgba(212,175,55,0.6));
+    animation: number-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes number-glow {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(212,175,55,0.4)); }
+    50% { filter: drop-shadow(0 0 50px rgba(212,175,55,0.9)); }
+  }
+
+  .number-label {
+    color: var(--silver);
+    letter-spacing: 0.3em;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* 星座表示 */
+  .zodiac-display {
+    text-align: center;
+    margin: 20px 0 30px;
+  }
+
+  .zodiac-symbol {
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    display: block;
+    margin-bottom: 10px;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .zodiac-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 5px;
+  }
+
+  .zodiac-dates {
+    color: var(--silver);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* 属性バッジ */
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+    justify-content: center;
+  }
+
+  .badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    border: 1px solid;
+  }
+
+  .badge-fire { background: rgba(255,80,0,0.15); border-color: rgba(255,80,0,0.4); color: #ff9060; }
+  .badge-earth { background: rgba(100,180,0,0.15); border-color: rgba(100,180,0,0.4); color: #90c060; }
+  .badge-air { background: rgba(100,200,255,0.15); border-color: rgba(100,200,255,0.4); color: #90d8ff; }
+  .badge-water { background: rgba(0,100,255,0.15); border-color: rgba(0,100,255,0.4); color: #80b0ff; }
+  .badge-gold { background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.4); color: var(--gold-light); }
+
+  /* セクション */
+  .section {
+    margin-bottom: 24px;
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(212,175,55,0.4), transparent);
+  }
+
+  .section-text {
+    line-height: 2;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    color: rgba(240,234,248,0.9);
+    font-weight: 300;
+  }
+
+  /* 運勢メーター */
+  .fortune-meters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .meter {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .meter-label {
+    font-size: 0.75rem;
+    color: var(--silver);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .meter-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--purple), var(--gold));
+    transform-origin: left;
+    animation: meter-in 1.5s cubic-bezier(0.17, 0.67, 0.35, 1) both;
+  }
+
+  @keyframes meter-in {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  /* 今日のラッキー */
+  .lucky-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .lucky-item {
+    background: rgba(212,175,55,0.07);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .lucky-item .icon { font-size: 1.3rem; margin-bottom: 4px; }
+  .lucky-item .key { font-size: 0.65rem; color: var(--silver); letter-spacing: 0.1em; text-transform: uppercase; }
+  .lucky-item .val { font-size: 0.85rem; color: var(--gold-light); margin-top: 2px; }
+
+  /* やり直しボタン */
+  .retry-btn {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 36px;
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 30px;
+    color: var(--silver);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .retry-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    box-shadow: 0 0 20px rgba(212,175,55,0.2);
+  }
+
+  /* 粒子エフェクト */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 50%;
+    animation: particle-rise var(--pd, 4s) ease-out forwards;
+  }
+
+  @keyframes particle-rise {
+    0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-200px) translateX(var(--px, 50px)) scale(0); opacity: 0; }
+  }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    margin-top: 60px;
+    color: rgba(192,192,192,0.3);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* レスポンシブ */
+  @media (max-width: 480px) {
+    .fortune-meters { grid-template-columns: 1fr; }
+    .lucky-grid { grid-template-columns: repeat(3, 1fr); }
+    .tabs { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 星空 -->
+<canvas id="starfield"></canvas>
+
+<!-- 星雲 -->
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+
+<div class="container">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <span class="crown">✦</span>
+    <h1>MAXSATORU ORACLE</h1>
+    <p class="subtitle">星詠み ✦ 神秘の占い</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-star">✦</span>
+      <div class="divider-line"></div>
+    </div>
+  </div>
+
+  <!-- フォーム -->
+  <div class="card" id="formCard">
+    <p class="card-title">✦ 生年月日を星に捧げよ ✦</p>
+    <div class="form-group">
+      <label>あなたの誕生日</label>
+      <input type="date" id="birthdate" max="">
+    </div>
+    <button class="btn" onclick="startReading()">✦ 運命を読み解く ✦</button>
+  </div>
+
+  <!-- ローディング -->
+  <div class="loading" id="loading">
+    <div class="crystal-ball">
+      <div class="crystal-ball-inner">
+        <div class="crystal-ball-shine"></div>
+        <div class="crystal-swirl"></div>
+      </div>
+    </div>
+    <p class="loading-text">✦ 星の導きを受け取っています ✦</p>
+  </div>
+
+  <!-- 結果 -->
+  <div class="result" id="result">
+    <div class="result-header">
+      <h2 id="resultName"></h2>
+      <p id="resultDate" style="color:var(--silver);font-size:0.85rem;letter-spacing:0.15em;"></p>
+    </div>
+
+    <!-- タブ -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('numerology', this)">✦ 数秘術</button>
+      <button class="tab-btn" onclick="switchTab('zodiac', this)">☽ 星座占い</button>
+      <button class="tab-btn" onclick="switchTab('fortune', this)">◈ 総合運</button>
+    </div>
+
+    <!-- 数秘術タブ -->
+    <div class="tab-content active" id="tab-numerology">
+      <div class="result-card">
+        <div class="number-display">
+          <div class="life-number" id="lifeNumber"></div>
+          <div class="number-label">✦ ライフパスナンバー ✦</div>
+        </div>
+        <div class="badges" id="numBadges"></div>
+        <div class="section" style="animation-delay:0.1s">
+          <div class="section-title">✦ 数の本質</div>
+          <p class="section-text" id="numEssence"></p>
+        </div>
+        <div class="section" style="animation-delay:0.2s">
+          <div class="section-title">✦ 使命と才能</div>
+          <p class="section-text" id="numMission"></p>
+        </div>
+        <div class="section" style="animation-delay:0.3s">
+          <div class="section-title">✦ 課題と成長</div>
+          <p class="section-text" id="numChallenge"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 星座タブ -->
+    <div class="tab-content" id="tab-zodiac">
+      <div class="result-card">
+        <div class="zodiac-display">
+          <span class="zodiac-symbol" id="zodiacSymbol"></span>
+          <div class="zodiac-name" id="zodiacName"></div>
+          <div class="zodiac-dates" id="zodiacDates"></div>
+        </div>
+        <div class="badges" id="zodiacBadges"></div>
+        <div class="section" style="animation-delay:0.1s">
+          <div class="section-title">☽ 星座の本質</div>
+          <p class="section-text" id="zodiacEssence"></p>
+        </div>
+        <div class="section" style="animation-delay:0.2s">
+          <div class="section-title">☽ 恋愛運</div>
+          <p class="section-text" id="zodiacLove"></p>
+        </div>
+        <div class="section" style="animation-delay:0.3s">
+          <div class="section-title">☽ 仕事・金運</div>
+          <p class="section-text" id="zodiacWork"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 総合運タブ -->
+    <div class="tab-content" id="tab-fortune">
+      <div class="result-card">
+        <div class="section">
+          <div class="section-title">◈ 今の運勢</div>
+          <div class="fortune-meters" id="fortuneMeters"></div>
+        </div>
+        <div class="section" style="animation-delay:0.2s">
+          <div class="section-title">◈ 総合メッセージ</div>
+          <p class="section-text" id="fortuneMessage"></p>
+        </div>
+        <div class="section" style="animation-delay:0.3s">
+          <div class="section-title">◈ 今日のラッキー</div>
+          <div class="lucky-grid" id="luckyGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="retry-btn" onclick="resetForm()">↩ もう一度占う</button>
+  </div>
+
+  <div class="footer">
+    <p>✦ MAXSATORU ORACLE ✦ 星詠み占い ✦</p>
+    <p style="margin-top:4px">占いは娯楽目的です。運命は自らの手で切り拓くもの。</p>
+    <p style="margin-top:8px;letter-spacing:0.2em">Developed by MAXSATORU</p>
+  </div>
+</div>
+
+<script>
+// ===== 星空Canvas =====
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], shooters = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 200; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.5 + 0.3,
+        speed: Math.random() * 0.5 + 0.2,
+        phase: Math.random() * Math.PI * 2,
+        maxOpacity: Math.random() * 0.7 + 0.3
+      });
+    }
+    shooters = [];
+    for (let i = 0; i < 3; i++) {
+      spawnShooter();
+    }
+  }
+
+  function spawnShooter() {
+    shooters.push({
+      x: Math.random() * W,
+      y: Math.random() * H * 0.5,
+      vx: 4 + Math.random() * 4,
+      vy: 2 + Math.random() * 3,
+      life: 1,
+      maxLife: 60 + Math.random() * 60,
+      frame: 0,
+      delay: Math.random() * 300
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+
+    // 星
+    stars.forEach(s => {
+      const opacity = s.maxOpacity * (0.5 + 0.5 * Math.sin(frame * s.speed * 0.05 + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+      ctx.fill();
+    });
+
+    // 流れ星
+    shooters.forEach((s, i) => {
+      if (s.delay > 0) { s.delay--; return; }
+      s.frame++;
+      if (s.frame > s.maxLife) {
+        shooters[i] = { x: Math.random() * W, y: Math.random() * H * 0.3, vx: 4 + Math.random() * 4, vy: 2 + Math.random() * 3, life: 1, maxLife: 60 + Math.random() * 60, frame: 0, delay: 200 + Math.random() * 300 };
+        return;
+      }
+      const progress = s.frame / s.maxLife;
+      const opacity = progress < 0.3 ? progress / 0.3 : 1 - (progress - 0.3) / 0.7;
+      const cx = s.x + s.vx * s.frame;
+      const cy = s.y + s.vy * s.frame;
+      const tailLen = 80;
+      const grad = ctx.createLinearGradient(cx - s.vx * tailLen / 5, cy - s.vy * tailLen / 5, cx, cy);
+      grad.addColorStop(0, `rgba(255,255,255,0)`);
+      grad.addColorStop(1, `rgba(255,255,255,${opacity})`);
+      ctx.beginPath();
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(cx - s.vx * tailLen / 5, cy - s.vy * tailLen / 5);
+      ctx.lineTo(cx, cy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,220,${opacity})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize();
+  initStars();
+  draw();
+})();
+
+// ===== 日付の上限設定 =====
+document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+
+// ===== 数秘術データ =====
+const numerologyData = {
+  1: {
+    badges: ['リーダー', '開拓者', '独立', '太陽'],
+    badgeTypes: ['gold', 'gold', 'gold', 'gold'],
+    essence: '1は万物の始まり、太陽のエネルギーを宿す数。あなたは生まれながらのリーダーシップと強烈な個性を持ち、自らの力で道を切り拓く使命を帯びています。独創的なアイデアと行動力で、周囲を鼓舞する存在です。',
+    mission: '先駆者として新しい分野を開拓し、人々に勇気と希望を与えることがあなたの使命です。独自のビジョンを信じ、自立した精神で物事に取り組むとき、あなたの才能は最大限に輝きます。創造的な仕事や起業、リーダーポジションで本領を発揮するでしょう。',
+    challenge: '強い自我が時として頑固さや独善的な態度として現れることがあります。協調性を培い、他者の意見にも耳を傾けることで、あなたの力はさらに大きなものとなります。孤独感に囚われず、信頼できる仲間とのつながりを大切に。'
+  },
+  2: {
+    badges: ['協調', '感受性', '月', 'バランス'],
+    badgeTypes: ['air', 'water', 'air', 'gold'],
+    essence: '2は月の数、対極の調和を司る。あなたは鋭い感受性と深い共感力を持ち、人と人との橋渡しを行う平和の使者です。直感力が非常に強く、言葉にならない感情や空気を読む能力に長けています。',
+    mission: '他者と深い絆を結び、調和と平和をもたらすことがあなたの使命。協力者として、あるいはカウンセラーや調停者として、その類稀な共感力を活かすことができます。芸術や音楽、詩など繊細な表現の世界でも才能が輝きます。',
+    challenge: '感受性の高さゆえに、他者の感情に影響されすぎることがあります。自分自身の境界線を明確に持ち、感情のバランスを保つ術を学ぶことが大切。優柔不断さを克服し、自分の直感を信じて決断する勇気を養いましょう。'
+  },
+  3: {
+    badges: ['創造', '表現', '木星', '喜び'],
+    badgeTypes: ['fire', 'gold', 'gold', 'fire'],
+    essence: '3は創造の三位一体、木星の祝福を受けた数。あなたは溢れる創造力と明るいエネルギーで周囲を魅了します。言葉、芸術、音楽、あらゆる表現の場で天賦の才を発揮する、喜びの使者です。',
+    mission: '自分の内なる創造性を世界に解き放ち、人々に喜びと美をもたらすことがあなたの使命。作家、音楽家、俳優、デザイナーなど創造的な分野で輝きます。ユーモアと楽観性であなたの周りに笑顔の花を咲かせましょう。',
+    challenge: '豊かな想像力が散漫さや先延ばしとして現れることがあります。一つのことに集中する力を養い、始めたことをやり遂げる忍耐力を培いましょう。表面的な社交性に終わらず、深い人間関係を築くことも大切な課題です。'
+  },
+  4: {
+    badges: ['安定', '勤勉', '土星', '基盤'],
+    badgeTypes: ['earth', 'earth', 'gold', 'earth'],
+    essence: '4は大地の四元素、土星の規律を宿す数。あなたは揺るぎない安定性と実直な勤勉さで、確固たる基盤を築く能力を持ちます。信頼と誠実さを体現し、周囲の人々の礎となる存在です。',
+    mission: '確実な方法で一歩一歩着実に積み上げ、永続する価値あるものを建設することがあなたの使命。建築、エンジニアリング、管理、法律など緻密さと信頼性が求められる分野で力を発揮します。',
+    challenge: '完璧主義と硬直性が変化への抵抗として現れることがあります。新しい可能性に対してより柔軟に心を開き、変化を恐れずに受け入れることが成長の鍵。仕事と休息のバランスを大切にしましょう。'
+  },
+  5: {
+    badges: ['自由', '変化', '水星', '冒険'],
+    badgeTypes: ['air', 'fire', 'air', 'fire'],
+    essence: '5は変化と自由を司る水星の数。あなたは多才な知性と尽きることのない好奇心で、人生を壮大な冒険として謳歌します。適応力が高く、あらゆる状況で机上の空論ではなく実体験から学びを得ます。',
+    mission: '自由な精神で様々な経験を積み、その多様な知識と経験を通じて人々に新しい視点をもたらすことがあなたの使命。旅行、ジャーナリズム、マーケティング、営業など変化に富む分野で才能が輝きます。',
+    challenge: '刺激を求めすぎるあまり、飽きっぽさや無責任さとして現れることがあります。自由と責任のバランスを保ち、一つのことを深く追求する継続力を磨くことが人生を豊かにする鍵です。'
+  },
+  6: {
+    badges: ['愛', '家庭', '金星', '奉仕'],
+    badgeTypes: ['fire', 'gold', 'gold', 'earth'],
+    essence: '6は愛と美の金星を司る数。あなたは深い愛情と責任感で、家庭や共同体の中心となる存在です。他者へのケアと奉仕の精神が自然と溢れ出し、周囲を温かく包み込む慈愛の光を放ちます。',
+    mission: '愛と美と調和を世界に広め、必要とする人々を癒すことがあなたの使命。カウンセラー、教師、医療従事者、芸術家として、あるいは素晴らしい家庭を築くことで、その使命を果たします。',
+    challenge: '過保護や完璧主義的な愛情が干渉として受け取られることがあります。相手の自立を尊重し、自分自身のニーズも大切にすることを学びましょう。自己犠牲に陥らず、自分を愛することから始めてください。'
+  },
+  7: {
+    badges: ['神秘', '知恵', '海王星', '内省'],
+    badgeTypes: ['water', 'gold', 'water', 'air'],
+    essence: '7は宇宙の神秘を司る聖なる数。あなたは深い洞察力と霊的な知恵を持ち、物事の表面の奥に潜む真実を見抜きます。分析的な知性と直観的な感受性を兼ね備えた、稀有な存在です。',
+    mission: '知識と叡智を深め、人類の精神的・知的進化に貢献することがあなたの使命。哲学、科学、神秘学、研究など真理の探求を行う分野で卓越した能力を発揮します。精神世界の案内人となる使命も持っています。',
+    challenge: '孤独を好むあまり、社会から孤立してしまうことがあります。内なる世界と外の世界のバランスを保ち、自らの洞察を周囲と共有することで使命が完成します。猜疑心を手放し、信頼を築く練習をしましょう。'
+  },
+  8: {
+    badges: ['権力', '成功', '土星', '豊かさ'],
+    badgeTypes: ['fire', 'gold', 'gold', 'gold'],
+    essence: '8は物質と精神の無限のサイクル、権力と豊かさの数。あなたはビジネスの天才的な能力と強力なリーダーシップを持ち、大きな目標に向かって着実に成功を引き寄せる引力を持っています。',
+    mission: '大きな力と責任を持って物事を動かし、社会に影響を与えることがあなたの使命。ビジネス、金融、政治、法律など権力と資源を扱う分野で真価を発揮します。物質的な豊かさを通じて精神的な価値を実現します。',
+    challenge: 'お金と権力への執着が傲慢さや支配欲として現れることがあります。力は奉仕のためにあるという精神を忘れず、富と力を分かち合う心を養うことが最大の課題です。バランスと謙虚さを忘れずに。'
+  },
+  9: {
+    badges: ['完成', '人道', '火星', '慈悲'],
+    badgeTypes: ['fire', 'gold', 'fire', 'water'],
+    essence: '9は完結と普遍的な愛を司る最高の数。あなたはすべてを包む慈悲の心と高い理想を持ち、人類全体の幸福を願うボーダレスな愛情の持ち主です。過去の生から積み重ねた深い智慧が宿っています。',
+    mission: '見返りを求めることなく人類に奉仕し、世界をより良い場所にすることがあなたの崇高な使命。国際的な活動、芸術、宗教、福祉の分野でその普遍的な愛を体現します。人々の心に灯火をともす存在です。',
+    challenge: '理想が高すぎるあまり、現実への失望や自己犠牲に陥ることがあります。完璧な世界ではなく、今この瞬間の美しさを受け入れる練習を。過去への執着を手放し、未来へと進む勇気を持ちましょう。'
+  },
+  11: {
+    badges: ['マスター', '直観', '使者', '啓示'],
+    badgeTypes: ['gold', 'water', 'gold', 'air'],
+    essence: '11はマスターナンバー、天と地を繋ぐ啓示の数。あなたは卓越した直観力と霊的な感受性を持ち、見えない次元からのメッセージを受け取る特別な能力を与えられています。高次の意識と繋がるアンテナです。',
+    mission: '精神的な啓示を世界にもたらし、人々の意識を高める役割があなたには与えられています。预言者、霊的指導者、革新的なビジョナリー、インスピレーションを与える芸術家として時代の先を行きます。',
+    challenge: '高すぎる感受性が不安や神経過敏として現れることがあります。グラウンディングを意識し、身体的な現実とのつながりを保つことが重要です。マスターナンバーの重さを受け入れ、一歩一歩着実に歩みましょう。'
+  },
+  22: {
+    badges: ['マスター', '建設者', '実現者', '宇宙'],
+    badgeTypes: ['gold', 'earth', 'gold', 'fire'],
+    essence: '22はマスターナンバー、夢を現実に変える偉大な建設者の数。あなたは壮大なビジョンを具体的な形として世界に実現する卓越した能力を持ちます。宇宙の設計図に従って、永続する遺産を創造します。',
+    mission: '大規模なプロジェクトを通じて世界に永続的な変化をもたらすことがあなたの使命。偉大な建築物、国際機関、社会システムの構築など、時代を超えて残る業績を達成する潜在力を持っています。',
+    challenge: '使命の重さに圧倒され、自分を疑ったり諦めてしまうことがあります。一度に全てを成し遂げようとせず、長期的な視点で着実に積み上げることが大切。完璧主義を手放し、進歩を喜びましょう。'
+  }
+};
+
+// ===== 星座データ =====
+const zodiacData = [
+  {
+    name: '山羊座', english: 'Capricorn', symbol: '♑', dates: '12/22 〜 1/19',
+    element: '地', ruler: '土星', badgeType: 'earth',
+    badges: ['土', '土星', '現実主義', '忍耐'],
+    badgeTypes: ['earth', 'gold', 'earth', 'gold'],
+    essence: '山羊座は大地の星座。あなたは忍耐強さと実直な勤勉さを持ち、高い目標に向かってコツコツと登り続ける意志の強さが際立ちます。責任感が強く、信頼されるリーダーとして、長い時間をかけて確実な成功を手に入れます。',
+    love: '恋愛においては慎重で誠実。簡単には心を開かないものの、一度深く愛した相手には極めて献身的です。現実的なパートナーシップを大切にし、共に人生を築いていく関係を求めます。',
+    work: '仕事運は最高潮。目標を定めれば着実に達成する力があります。金融、法律、経営などの分野で特に才能を発揮。長期的な視点で資産を形成することが得意で、老後の安定も期待できます。'
+  },
+  {
+    name: '水瓶座', english: 'Aquarius', symbol: '♒', dates: '1/20 〜 2/18',
+    element: '風', ruler: '天王星', badgeType: 'air',
+    badges: ['風', '天王星', '革新', '人道主義'],
+    badgeTypes: ['air', 'gold', 'fire', 'gold'],
+    essence: '水瓶座は風の星座、天王星の革命を体現します。あなたは時代の先を行く革新的な思考と、人類への深い愛を持つユニークな存在。個性と自由を何より大切にし、固定概念にとらわれない独創的なアプローチで世界を変えます。',
+    love: '恋愛においては知的なつながりを最重視。友情から始まる恋が多く、精神的な共鳴がある相手に深く惹かれます。自由を束縛する関係を嫌い、お互いの個性を尊重できるパートナーシップが理想。',
+    work: '革新的な分野、テクノロジー、研究、社会活動などで才能が爆発します。チームの中でも独自の視点で突破口を開く存在。金銭感覚はやや希薄ですが、自分が信じる仕事には惜しみなく情熱を注ぎます。'
+  },
+  {
+    name: '魚座', english: 'Pisces', symbol: '♓', dates: '2/19 〜 3/20',
+    element: '水', ruler: '海王星', badgeType: 'water',
+    badges: ['水', '海王星', '共感', '神秘'],
+    badgeTypes: ['water', 'gold', 'water', 'gold'],
+    essence: '魚座は水の星座、海王星の神秘的なエネルギーが流れます。あなたは深い共感力と霊的な感受性を持ち、この世界とあの世界の境界を自由に泳ぐ存在。夢と現実の両方に足を置きながら、深海の宝を水面に運び上げます。',
+    love: '恋愛は人生で最も輝く舞台。ロマンチックで献身的な愛情を持ち、愛する人のためなら全てを与えます。ただし相手への依存度が高くなりがち。魂のレベルで繋がれる運命の出会いを待っています。',
+    work: '芸術、音楽、医療、ソーシャルワークなど感性と共感を活かせる分野で最大の才能を発揮。直感的なひらめきが仕事に革新をもたらします。お金は入ってきても出て行くことも多いので、計画的な管理が大切。'
+  },
+  {
+    name: '牡羊座', english: 'Aries', symbol: '♈', dates: '3/21 〜 4/19',
+    element: '火', ruler: '火星', badgeType: 'fire',
+    badges: ['火', '火星', '情熱', '先駆者'],
+    badgeTypes: ['fire', 'gold', 'fire', 'gold'],
+    essence: '牡羊座は火の星座、戦と勝利の火星が守護します。あなたは燃えるような情熱と果敢な勇気を持ち、誰よりも早く新しいフィールドに飛び込む開拓者。エネルギーの塊であるあなたの行動力は周囲をも鼓舞します。',
+    love: '恋愛は激しく情熱的。一目惚れも多く、好きになったら真っ直ぐに突進します。飽きっぽい面もありますが、本当に好きな相手には純粋で一途。刺激と冒険を共有できるパートナーが最良の相手です。',
+    work: '競争の激しい分野、スポーツ、起業、営業などで特に輝きます。先頭に立って引っ張るリーダーとして信頼されます。金運は行動と連動しており、積極的に動くほど収入が増える傾向があります。'
+  },
+  {
+    name: '牡牛座', english: 'Taurus', symbol: '♉', dates: '4/20 〜 5/20',
+    element: '地', ruler: '金星', badgeType: 'earth',
+    badges: ['地', '金星', '美', '安定'],
+    badgeTypes: ['earth', 'gold', 'gold', 'earth'],
+    essence: '牡牛座は地の星座、美と愛の金星が輝きます。あなたは五感の喜びを深く理解し、美しいものへの鑑賞眼と豊かな感受性を持ちます。粘り強さと堅実さで積み上げる力は誰にも劣りません。',
+    love: '恋愛は安定と安心感を最重視。ゆっくりと信頼を築き、確かな愛情に包まれる関係を求めます。一度愛した人には変わらぬ深い愛情を捧げます。スキンシップや共に過ごす時間を大切にします。',
+    work: '芸術、金融、不動産、料理など美と価値に関わる分野で才能が光ります。堅実な貯蓄能力があり、長期的な資産形成が得意。ただし変化への適応に時間がかかることがあるので、柔軟性を意識しましょう。'
+  },
+  {
+    name: '双子座', english: 'Gemini', symbol: '♊', dates: '5/21 〜 6/21',
+    element: '風', ruler: '水星', badgeType: 'air',
+    badges: ['風', '水星', '知性', '多才'],
+    badgeTypes: ['air', 'gold', 'air', 'fire'],
+    essence: '双子座は風の星座、知性と伝達の水星が動かします。あなたは多面的な知性と卓越したコミュニケーション能力を持ち、あらゆる情報を瞬時に処理する素早い頭脳の持ち主。変化する状況への適応力は天下一品です。',
+    love: '恋愛は知的な会話から始まることが多く、頭脳的な刺激を与えてくれる相手に惹かれます。飽きやすい性質があり、マンネリを恐れます。変化と驚きが常にある関係で最も輝きます。',
+    work: 'ライター、記者、教師、通訳、営業など言葉とコミュニケーションを使う仕事で天才的な能力を発揮。マルチタスクが得意で、複数のプロジェクトを同時進行できます。好奇心が収入の多様化をもたらします。'
+  },
+  {
+    name: '蟹座', english: 'Cancer', symbol: '♋', dates: '6/22 〜 7/22',
+    element: '水', ruler: '月', badgeType: 'water',
+    badges: ['水', '月', '感情', '家庭'],
+    badgeTypes: ['water', 'gold', 'water', 'earth'],
+    essence: '蟹座は水の星座、月の満ち欠けに感情が共鳴します。あなたは深い感受性と強い直感力、そして揺るぎない家族への愛情を持ちます。見た目は堅い甲羅で覆われていても、内側には柔らかく温かな心が宿っています。',
+    love: '恋愛は深い感情的なつながりを最も大切にします。愛する人を守り、包み込む母性的な愛情を持ちます。傷つくことへの恐れがあるため、本当の自分をさらけ出すまでに時間がかかります。',
+    work: '福祉、保育、医療、料理、不動産など人々のケアや生活に関わる分野で情熱を燃やします。感情的知性が高く、職場でのチームワークに貢献。貯蓄本能があり、将来への備えをしっかりと行います。'
+  },
+  {
+    name: '獅子座', english: 'Leo', symbol: '♌', dates: '7/23 〜 8/22',
+    element: '火', ruler: '太陽', badgeType: 'fire',
+    badges: ['火', '太陽', '威厳', 'カリスマ'],
+    badgeTypes: ['fire', 'gold', 'gold', 'fire'],
+    essence: '獅子座は火の星座、太陽そのものの輝きを体現します。あなたは生まれながらのカリスマ性と王者の風格を持ち、部屋に入っただけで空気が変わる存在感を放ちます。創造力と自己表現への情熱は誰にも負けません。',
+    love: '恋愛はドラマチックで情熱的。愛する人を心から大切にし、惜しみない愛情と贈り物で包みます。プライドが高く、リスペクトされることを求めます。愛され上手でもあり、相手の自尊心を高める天才。',
+    work: '舞台芸術、エンターテインメント、経営、政治など表舞台で輝く分野で才能が爆発。リーダーとして人々をインスパイアします。派手な消費傾向がありますが、それ以上に稼ぐ力も持っています。'
+  },
+  {
+    name: '乙女座', english: 'Virgo', symbol: '♍', dates: '8/23 〜 9/22',
+    element: '地', ruler: '水星', badgeType: 'earth',
+    badges: ['地', '水星', '分析', '奉仕'],
+    badgeTypes: ['earth', 'gold', 'air', 'gold'],
+    essence: '乙女座は地の星座、水星の分析力が磨かれた純粋さを追求します。あなたは卓越した分析力と完璧主義的な精密さで、複雑な問題をシンプルに整理します。謙虚で実用的、細部への注意力は天才的なレベルです。',
+    love: '恋愛には慎重で、理性的なアプローチをとります。相手をよく観察し、長所と短所を見極めてから心を開きます。一度愛した相手へは日々の小さな気配りで深い愛情を表現する、献身的なパートナーです。',
+    work: '医療、研究、会計、編集、品質管理など正確さと専門性が求められる分野で真価を発揮。細部まで完璧に仕上げる能力は他の追随を許しません。健康管理と将来への貯蓄も得意です。'
+  },
+  {
+    name: '天秤座', english: 'Libra', symbol: '♎', dates: '9/23 〜 10/23',
+    element: '風', ruler: '金星', badgeType: 'air',
+    badges: ['風', '金星', '調和', '正義'],
+    badgeTypes: ['air', 'gold', 'gold', 'air'],
+    essence: '天秤座は風の星座、美と愛の金星が均衡を守ります。あなたは美的センスと公平な判断力、そして洗練されたコミュニケーション能力を持つ外交官です。対立を和らげ、美しい調和を生み出す芸術家でもあります。',
+    love: '恋愛こそが天秤座の本領発揮の場。美しい雰囲気と知的な会話で相手を惹きつけます。理想が高く、完璧な恋人を求めがちですが、一度関係が始まれば優雅で思いやりある最高のパートナーになります。',
+    work: '法律、外交、デザイン、ファッション、人事など調和と審美眼が必要な分野で輝きます。チームの調整役として高く評価されます。金銭感覚は良く、美しいものへの投資で財を築きます。'
+  },
+  {
+    name: '蠍座', english: 'Scorpio', symbol: '♏', dates: '10/24 〜 11/22',
+    element: '水', ruler: '冥王星', badgeType: 'water',
+    badges: ['水', '冥王星', '変容', '深淵'],
+    badgeTypes: ['water', 'gold', 'fire', 'water'],
+    essence: '蠍座は水の星座、冥王星の深淵な力を宿します。あなたは物事の表面には表れない本質と真実を看破する透視能力と、死と再生を繰り返す不死鳥のような生命力を持ちます。情熱の深さと集中力は比類なきものがあります。',
+    love: '恋愛は全か無か、その情熱の深さは他の星座の追随を許しません。一度愛した相手への執着と独占欲は強烈ですが、それは揺るぎない深い愛情の裏返し。魂と魂が融合するような絆を求めています。',
+    work: '心理学、探偵・調査、外科医、研究者、金融投資など深く掘り下げる仕事で才能が爆発。秘密を扱う仕事でも信頼されます。長期的な視点での資産運用で大きな富を蓄積する能力があります。'
+  },
+  {
+    name: '射手座', english: 'Sagittarius', symbol: '♐', dates: '11/23 〜 12/21',
+    element: '火', ruler: '木星', badgeType: 'fire',
+    badges: ['火', '木星', '自由', '探求'],
+    badgeTypes: ['fire', 'gold', 'air', 'fire'],
+    essence: '射手座は火の星座、幸運と拡大の木星が翼を広げます。あなたは宇宙の果てまで飛んでいく自由の精神と、真理への底知れぬ探求心を持つ哲学者であり冒険家。楽観的なエネルギーで周囲に幸運を引き寄せます。',
+    love: '恋愛は自由で開放的。束縛を嫌い、精神的な自由を最も重視します。冒険や学びを共有できる相手に心から惹かれ、魂の成長をもたらし合える関係が理想。ユーモアとポジティブさで恋人を笑顔にします。',
+    work: '教育、旅行、出版、哲学、スポーツなど広い世界と関わる分野で才能が輝きます。木星の恩恵で思わぬ幸運が舞い込むことも。リスクを恐れない投資センスが大きな富をもたらすことがあります。'
+  }
+];
+
+// ===== 数秘術計算 =====
+function calcLifePath(dateStr) {
+  const digits = dateStr.replace(/-/g, '');
+  let sum = digits.split('').reduce((a, b) => a + parseInt(b), 0);
+  while (sum > 9 && sum !== 11 && sum !== 22) {
+    sum = String(sum).split('').reduce((a, b) => a + parseInt(b), 0);
+  }
+  return sum;
+}
+
+// ===== 星座計算 =====
+function getZodiac(month, day) {
+  if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return zodiacData[0];
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return zodiacData[1];
+  if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return zodiacData[2];
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return zodiacData[3];
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return zodiacData[4];
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return zodiacData[5];
+  if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return zodiacData[6];
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return zodiacData[7];
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return zodiacData[8];
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return zodiacData[9];
+  if ((month === 10 && day >= 24) || (month === 11 && day <= 22)) return zodiacData[10];
+  return zodiacData[11];
+}
+
+// ===== シード乱数（日付基準で固定）=====
+function seededRand(seed, min, max) {
+  const x = Math.sin(seed + 1) * 10000;
+  const r = x - Math.floor(x);
+  return Math.floor(r * (max - min + 1)) + min;
+}
+
+function getFortuneValues(dateStr) {
+  const seed = parseInt(dateStr.replace(/-/g, ''));
+  return {
+    love: seededRand(seed * 1, 40, 100),
+    money: seededRand(seed * 2, 30, 100),
+    work: seededRand(seed * 3, 40, 100),
+    health: seededRand(seed * 4, 50, 100),
+    luck: seededRand(seed * 5, 35, 100)
+  };
+}
+
+const luckyColors = ['ロイヤルパープル', 'ミステリアスブルー', 'ゴールデン', 'シルバー', 'ディープレッド', 'エメラルド', 'サファイアブルー', 'ローズクォーツ', 'アメジスト', 'ターコイズ', 'コーラル', 'ラベンダー'];
+const luckyStones = ['アメジスト', 'ムーンストーン', 'ラピスラズリ', 'ローズクォーツ', 'オパール', 'ガーネット', 'ターコイズ', 'サファイア', 'ルビー', 'エメラルド', 'トパーズ', 'オニキス'];
+const luckyNumbers = [3, 7, 8, 11, 13, 21, 22, 33, 44, 55, 66, 77, 88, 99];
+const luckyDirections = ['北', '南', '東', '西', '北東', '北西', '南東', '南西'];
+const luckyTimes = ['6:00-8:00', '10:00-12:00', '14:00-16:00', '18:00-20:00', '21:00-23:00'];
+const luckyFoods = ['ダークチョコレート', '紫ブドウ', 'ブルーベリー', 'ラベンダーティー', '黒ゴマ', 'アーモンド', 'ザクロ', 'ブラックベリー', 'ナッツ', 'ハーブティー'];
+
+const fortuneMessages = [
+  '星々があなたに贈るメッセージ：今この瞬間こそが、あなたが長い間待ち望んでいた転機の始まりです。宇宙があなたの夢を実現するために動き出しています。恐れを手放し、内なる光に従って進んでください。',
+  '天球の配置があなたに語りかけます：隠れていた才能が花開く時が来ました。過去の経験が今、あなたの最大の武器となります。信頼できる人との絆を深め、共に新たな地平を切り拓いてください。',
+  '宇宙の意志がこの瞬間に収束しています：あなたが心の奥底で感じている直感を信じてください。それは高次の自己からのメッセージです。今こそ行動する時。星がその道を照らしています。',
+  '運命の糸があなたの人生を美しく織りなしています：困難に見えることも、後から振り返れば必要な試練だったと気づくでしょう。忍耐と信頼を持って進めば、宇宙はあなたに豊かな恵みをもたらします。',
+  '銀河の中心からエネルギーが流れ込んでいます：あなたの存在そのものが、周囲の人々に光と希望をもたらしています。自分の価値を疑わず、ありのままの自分を愛することから始めましょう。奇跡はあなたの足元に宿っています。'
+];
+
+// ===== メイン処理 =====
+function startReading() {
+  const dateStr = document.getElementById('birthdate').value;
+  if (!dateStr) {
+    shakeInput();
+    return;
+  }
+
+  document.getElementById('formCard').style.display = 'none';
+  document.getElementById('loading').classList.add('show');
+
+  setTimeout(() => {
+    showResult(dateStr);
+  }, 2500);
+}
+
+function shakeInput() {
+  const input = document.getElementById('birthdate');
+  input.style.animation = 'shake 0.5s ease';
+  input.style.borderColor = '#ff6060';
+  setTimeout(() => {
+    input.style.animation = '';
+    input.style.borderColor = '';
+  }, 600);
+}
+
+function showResult(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const lifeNum = calcLifePath(dateStr);
+  const zodiac = getZodiac(month, day);
+  const numData = numerologyData[lifeNum] || numerologyData[9];
+  const seed = parseInt(dateStr.replace(/-/g, ''));
+  const fortune = getFortuneValues(dateStr);
+
+  // 名前・日付
+  const dateObj = new Date(year, month - 1, day);
+  const formatted = `${year}年${month}月${day}日 ✦ ${dateObj.toLocaleDateString('ja-JP', {weekday: 'long'})}生まれ`;
+  document.getElementById('resultName').textContent = `✦ 星の神託 ✦`;
+  document.getElementById('resultDate').textContent = formatted;
+
+  // 数秘術
+  document.getElementById('lifeNumber').textContent = lifeNum;
+  const numBadges = document.getElementById('numBadges');
+  numBadges.innerHTML = numData.badges.map((b, i) =>
+    `<span class="badge badge-${numData.badgeTypes[i]}">${b}</span>`
+  ).join('');
+  document.getElementById('numEssence').textContent = numData.essence;
+  document.getElementById('numMission').textContent = numData.mission;
+  document.getElementById('numChallenge').textContent = numData.challenge;
+
+  // 星座
+  document.getElementById('zodiacSymbol').textContent = zodiac.symbol;
+  document.getElementById('zodiacName').textContent = `${zodiac.name} / ${zodiac.english}`;
+  document.getElementById('zodiacDates').textContent = zodiac.dates;
+  const zodiacBadges = document.getElementById('zodiacBadges');
+  zodiacBadges.innerHTML = zodiac.badges.map((b, i) =>
+    `<span class="badge badge-${zodiac.badgeTypes[i]}">${b}</span>`
+  ).join('');
+  document.getElementById('zodiacEssence').textContent = zodiac.essence;
+  document.getElementById('zodiacLove').textContent = zodiac.love;
+  document.getElementById('zodiacWork').textContent = zodiac.work;
+
+  // 総合運
+  const meters = [
+    { label: '恋愛運', val: fortune.love },
+    { label: '金運', val: fortune.money },
+    { label: '仕事運', val: fortune.work },
+    { label: '健康運', val: fortune.health },
+    { label: '総合運', val: fortune.luck },
+    { label: '直感力', val: seededRand(seed * 6, 50, 100) }
+  ];
+
+  document.getElementById('fortuneMeters').innerHTML = meters.map(m => `
+    <div class="meter">
+      <div class="meter-label"><span>${m.label}</span><span style="color:var(--gold-light)">${m.val}%</span></div>
+      <div class="meter-bar"><div class="meter-fill" style="width:${m.val}%"></div></div>
+    </div>
+  `).join('');
+
+  const msgIdx = seededRand(seed * 7, 0, fortuneMessages.length - 1);
+  document.getElementById('fortuneMessage').textContent = fortuneMessages[msgIdx];
+
+  const colorIdx = seededRand(seed * 8, 0, luckyColors.length - 1);
+  const stoneIdx = seededRand(seed * 9, 0, luckyStones.length - 1);
+  const numIdx = seededRand(seed * 10, 0, luckyNumbers.length - 1);
+  const dirIdx = seededRand(seed * 11, 0, luckyDirections.length - 1);
+  const timeIdx = seededRand(seed * 12, 0, luckyTimes.length - 1);
+  const foodIdx = seededRand(seed * 13, 0, luckyFoods.length - 1);
+
+  document.getElementById('luckyGrid').innerHTML = `
+    <div class="lucky-item"><div class="icon">💎</div><div class="key">Stone</div><div class="val">${luckyStones[stoneIdx]}</div></div>
+    <div class="lucky-item"><div class="icon">🎨</div><div class="key">Color</div><div class="val">${luckyColors[colorIdx]}</div></div>
+    <div class="lucky-item"><div class="icon">✦</div><div class="key">Number</div><div class="val">${luckyNumbers[numIdx]}</div></div>
+    <div class="lucky-item"><div class="icon">🧭</div><div class="key">Direction</div><div class="val">${luckyDirections[dirIdx]}</div></div>
+    <div class="lucky-item"><div class="icon">🌙</div><div class="key">Time</div><div class="val">${luckyTimes[timeIdx]}</div></div>
+    <div class="lucky-item"><div class="icon">✨</div><div class="key">Food</div><div class="val">${luckyFoods[foodIdx]}</div></div>
+  `;
+
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('result').classList.add('show');
+
+  // 粒子エフェクト
+  launchParticles();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function resetForm() {
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('formCard').style.display = '';
+  document.getElementById('birthdate').value = '';
+  // 最初のタブに戻す
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function launchParticles() {
+  const colors = ['#d4af37', '#f5d76e', '#c8a8ff', '#ffffff', '#a0c8ff'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 2;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${Math.random()*100}vw;top:${Math.random()*30+50}vh;
+      --pd:${Math.random()*2+2}s;
+      --px:${(Math.random()-0.5)*200}px;
+      animation-delay:${Math.random()*0.5}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 5000);
+  }
+}
+</script>
+</body>
+</html>
