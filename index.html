@@ -217,29 +217,56 @@
     text-transform: uppercase;
   }
 
-  input[type="date"] {
+  .select-group {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr;
+    gap: 10px;
+  }
+
+  .select-wrap {
+    position: relative;
+  }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    pointer-events: none;
+    font-size: 1rem;
+  }
+
+  select {
     width: 100%;
-    padding: 14px 20px;
+    padding: 14px 36px 14px 16px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(212,175,55,0.3);
     border-radius: 12px;
     color: var(--white);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-family: 'Noto Serif JP', serif;
     transition: all 0.3s;
     outline: none;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
   }
 
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
-    cursor: pointer;
-  }
-
-  input[type="date"]:focus {
+  select:focus {
     border-color: var(--gold);
     background: rgba(212,175,55,0.07);
     box-shadow: 0 0 20px rgba(212,175,55,0.2);
+  }
+
+  select option {
+    background: #1a0a3e;
+    color: var(--white);
+  }
+
+  select.placeholder-selected {
+    color: rgba(192,192,192,0.5);
   }
 
   .btn {
@@ -686,7 +713,23 @@
     <p class="card-title">✦ 生年月日を星に捧げよ ✦</p>
     <div class="form-group">
       <label>あなたの誕生日</label>
-      <input type="date" id="birthdate" max="">
+      <div class="select-group">
+        <div class="select-wrap">
+          <select id="sel-year" onchange="updateSelectStyle(this)">
+            <option value="">年</option>
+          </select>
+        </div>
+        <div class="select-wrap">
+          <select id="sel-month" onchange="updateSelectStyle(this)">
+            <option value="">月</option>
+          </select>
+        </div>
+        <div class="select-wrap">
+          <select id="sel-day" onchange="updateSelectStyle(this)">
+            <option value="">日</option>
+          </select>
+        </div>
+      </div>
     </div>
     <button class="btn" onclick="startReading()">✦ 運命を読み解く ✦</button>
   </div>
@@ -885,8 +928,69 @@
   draw();
 })();
 
-// ===== 日付の上限設定 =====
-document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+// ===== セレクト初期化 =====
+(function initSelects() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  // 年（1920〜今年）
+  const ySel = document.getElementById('sel-year');
+  for (let y = currentYear; y >= 1920; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y + '年';
+    ySel.appendChild(o);
+  }
+
+  // 月
+  const mSel = document.getElementById('sel-month');
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m + '月';
+    mSel.appendChild(o);
+  }
+
+  // 日（月選択で動的更新）
+  updateDays();
+  mSel.addEventListener('change', updateDays);
+  ySel.addEventListener('change', updateDays);
+
+  // プレースホルダースタイル初期化
+  [ySel, mSel, document.getElementById('sel-day')].forEach(s => {
+    s.classList.add('placeholder-selected');
+  });
+})();
+
+function updateDays() {
+  const y = parseInt(document.getElementById('sel-year').value) || 2000;
+  const m = parseInt(document.getElementById('sel-month').value) || 1;
+  const maxDay = new Date(y, m, 0).getDate();
+  const dSel = document.getElementById('sel-day');
+  const prev = dSel.value;
+  dSel.innerHTML = '<option value="">日</option>';
+  for (let d = 1; d <= maxDay; d++) {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d + '日';
+    dSel.appendChild(o);
+  }
+  if (prev && parseInt(prev) <= maxDay) dSel.value = prev;
+  updateSelectStyle(dSel);
+}
+
+function updateSelectStyle(sel) {
+  if (sel.value) {
+    sel.classList.remove('placeholder-selected');
+  } else {
+    sel.classList.add('placeholder-selected');
+  }
+}
+
+function getBirthdate() {
+  const y = document.getElementById('sel-year').value;
+  const m = String(document.getElementById('sel-month').value).padStart(2, '0');
+  const d = String(document.getElementById('sel-day').value).padStart(2, '0');
+  if (!y || !m || m === '00' || !d || d === '00') return null;
+  return `${y}-${m}-${d}`;
+}
 
 // ===== 数秘術データ =====
 const numerologyData = {
@@ -1142,7 +1246,7 @@ const fortuneMessages = [
 
 // ===== メイン処理 =====
 function startReading() {
-  const dateStr = document.getElementById('birthdate').value;
+  const dateStr = getBirthdate();
   if (!dateStr) {
     shakeInput();
     return;
@@ -1157,13 +1261,17 @@ function startReading() {
 }
 
 function shakeInput() {
-  const input = document.getElementById('birthdate');
-  input.style.animation = 'shake 0.5s ease';
-  input.style.borderColor = '#ff6060';
-  setTimeout(() => {
-    input.style.animation = '';
-    input.style.borderColor = '';
-  }, 600);
+  const selects = document.querySelectorAll('.select-wrap select');
+  selects.forEach(s => {
+    if (!s.value) {
+      s.style.borderColor = '#ff6060';
+      s.style.animation = 'shake 0.5s ease';
+      setTimeout(() => {
+        s.style.borderColor = '';
+        s.style.animation = '';
+      }, 600);
+    }
+  });
 }
 
 function showResult(dateStr) {
@@ -1257,7 +1365,12 @@ function switchTab(tab, btn) {
 function resetForm() {
   document.getElementById('result').classList.remove('show');
   document.getElementById('formCard').style.display = '';
-  document.getElementById('birthdate').value = '';
+  ['sel-year','sel-month','sel-day'].forEach(id => {
+    const s = document.getElementById(id);
+    s.value = '';
+    s.classList.add('placeholder-selected');
+  });
+  updateDays();
   // 最初のタブに戻す
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
   document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
