@@ -682,6 +682,282 @@
     .lucky-grid { grid-template-columns: repeat(3, 1fr); }
     .tabs { flex-direction: column; }
   }
+
+  /* ===== ページナビ ===== */
+  .page-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 40px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 50px;
+    padding: 5px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .page-nav-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    border-radius: 40px;
+    background: transparent;
+    color: var(--silver);
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(0.78rem, 2.5vw, 0.95rem);
+    letter-spacing: 0.1em;
+    transition: all 0.35s;
+    white-space: nowrap;
+  }
+
+  .page-nav-btn.active {
+    background: linear-gradient(135deg, var(--purple), var(--violet));
+    color: var(--gold-light);
+    box-shadow: 0 4px 20px rgba(107,47,160,0.5);
+  }
+
+  /* ===== 今日の運勢ページ ===== */
+  .daily-page {
+    width: 100%;
+    max-width: 700px;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .today-date-card {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .today-label {
+    font-size: 0.75rem;
+    color: var(--silver);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .today-date-text {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.05em;
+  }
+
+  .moon-phase {
+    font-size: 1.5rem;
+    margin-top: 6px;
+    animation: float 5s ease-in-out infinite;
+    display: block;
+  }
+
+  /* 星座セレクターグリッド */
+  .zodiac-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 400px) {
+    .zodiac-selector { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .zodiac-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.15);
+    border-radius: 14px;
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    color: var(--white);
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  .zodiac-btn:hover {
+    border-color: rgba(212,175,55,0.5);
+    background: rgba(212,175,55,0.07);
+    transform: translateY(-2px);
+  }
+
+  .zodiac-btn.selected {
+    background: linear-gradient(135deg, rgba(61,26,120,0.8), rgba(107,47,160,0.8));
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+
+  .zodiac-btn .z-symbol { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+  .zodiac-btn .z-name { font-size: 0.65rem; color: var(--silver); letter-spacing: 0.05em; }
+  .zodiac-btn.selected .z-name { color: var(--gold-light); }
+
+  /* 今日の運勢カード */
+  .daily-result {
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .daily-zodiac-header {
+    text-align: center;
+    padding: 24px 0 20px;
+  }
+
+  .daily-symbol {
+    font-size: clamp(3rem, 10vw, 5rem);
+    display: block;
+    animation: float 4s ease-in-out infinite;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 15px rgba(212,175,55,0.4));
+  }
+
+  .daily-zodiac-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* 今日のメッセージ */
+  .daily-message-card {
+    background: linear-gradient(135deg, rgba(61,26,120,0.5), rgba(107,47,160,0.3));
+    border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 18px;
+    padding: clamp(18px, 4vw, 28px);
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .daily-message-card::before {
+    content: '❝';
+    position: absolute;
+    top: 8px; left: 14px;
+    font-size: 2.5rem;
+    color: rgba(212,175,55,0.2);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+
+  .daily-message-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .daily-message-text {
+    font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+    line-height: 1.9;
+    color: var(--white);
+    font-weight: 300;
+  }
+
+  /* 4項目運勢 */
+  .fortune-4grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .fortune-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 16px 14px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .fortune-item:hover {
+    border-color: rgba(212,175,55,0.3);
+    background: rgba(212,175,55,0.05);
+  }
+
+  .fortune-item-icon { font-size: 1.4rem; margin-bottom: 6px; display: block; }
+
+  .fortune-item-label {
+    font-size: 0.72rem;
+    color: var(--silver);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .fortune-stars {
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .star-filled { color: var(--gold); }
+  .star-empty { color: rgba(192,192,192,0.25); }
+
+  .fortune-item-score {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .fortune-item-word {
+    font-size: 0.75rem;
+    color: var(--silver);
+    margin-top: 2px;
+  }
+
+  /* ラッキーカード */
+  .lucky-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .lucky-card {
+    background: rgba(212,175,55,0.07);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 16px;
+    padding: 18px 12px;
+    text-align: center;
+  }
+
+  .lucky-card-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; }
+  .lucky-card-label { font-size: 0.68rem; color: var(--silver); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 6px; }
+  .lucky-card-value { font-size: clamp(0.9rem, 3vw, 1.1rem); color: var(--gold-light); font-weight: 400; letter-spacing: 0.05em; }
+
+  /* アドバイス */
+  .daily-advice {
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .daily-advice-label {
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .daily-advice-text {
+    font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+    line-height: 1.9;
+    color: rgba(240,234,248,0.85);
+    font-weight: 300;
+  }
 </style>
 </head>
 <body>
@@ -707,6 +983,15 @@
       <div class="divider-line"></div>
     </div>
   </div>
+
+  <!-- ページナビ -->
+  <nav class="page-nav">
+    <button class="page-nav-btn active" onclick="switchPage('oracle', this)">✦ 命運占い</button>
+    <button class="page-nav-btn" onclick="switchPage('daily', this)">☽ 今日の運勢</button>
+  </nav>
+
+  <!-- 占いページ -->
+  <div id="oraclePage" style="width:100%;display:flex;flex-direction:column;align-items:center;">
 
   <!-- フォーム -->
   <div class="card" id="formCard">
@@ -826,6 +1111,62 @@
 
     <button class="retry-btn" onclick="resetForm()">↩ もう一度占う</button>
   </div>
+
+  </div><!-- /#oraclePage -->
+
+  <!-- 今日の運勢ページ -->
+  <div id="dailyPage" class="daily-page" style="display:none;">
+
+    <!-- 今日の日付 -->
+    <div class="today-date-card">
+      <div class="today-label">Today's Fortune</div>
+      <div class="today-date-text" id="todayDateText"></div>
+      <span class="moon-phase" id="moonPhaseIcon"></span>
+    </div>
+
+    <!-- 星座セレクター -->
+    <div class="result-card" style="margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:16px;">☽ あなたの星座を選んでください</div>
+      <div class="zodiac-selector" id="zodiacSelector"></div>
+    </div>
+
+    <!-- 今日の運勢結果 -->
+    <div id="dailyResult" style="display:none;">
+
+      <div class="result-card" style="margin-bottom:16px;">
+        <div class="daily-zodiac-header">
+          <span class="daily-symbol" id="dailySymbol"></span>
+          <div class="daily-zodiac-name" id="dailyZodiacName"></div>
+        </div>
+        <!-- 今日の一言 -->
+        <div class="daily-message-card">
+          <div class="daily-message-label">✦ 今日の星からのメッセージ ✦</div>
+          <p class="daily-message-text" id="dailyMessage"></p>
+        </div>
+      </div>
+
+      <!-- 4項目運勢 -->
+      <div class="result-card" style="margin-bottom:16px;">
+        <div class="section-title" style="margin-bottom:16px;">◈ 今日の運勢</div>
+        <div class="fortune-4grid" id="daily4Grid"></div>
+      </div>
+
+      <!-- ラッキーアイテム -->
+      <div class="result-card" style="margin-bottom:16px;">
+        <div class="section-title" style="margin-bottom:16px;">✦ 今日のラッキー</div>
+        <div class="lucky-duo" id="dailyLuckyDuo"></div>
+      </div>
+
+      <!-- 今日のアドバイス -->
+      <div class="result-card" style="margin-bottom:16px;">
+        <div class="daily-advice">
+          <div class="daily-advice-label">◈ 今日のアドバイス</div>
+          <p class="daily-advice-text" id="dailyAdvice"></p>
+        </div>
+      </div>
+
+    </div><!-- /#dailyResult -->
+  </div><!-- /#dailyPage -->
 
   <div class="footer">
     <p>✦ MAXSATORU ORACLE ✦ 星詠み占い ✦</p>
@@ -1375,6 +1716,228 @@ function resetForm() {
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
   document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== ページ切り替え =====
+function switchPage(page, btn) {
+  document.querySelectorAll('.page-nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('oraclePage').style.display = page === 'oracle' ? 'flex' : 'none';
+  document.getElementById('oraclePage').style.flexDirection = 'column';
+  document.getElementById('oraclePage').style.alignItems = 'center';
+  document.getElementById('dailyPage').style.display = page === 'daily' ? 'block' : 'none';
+  if (page === 'daily') initDailyPage();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== 今日の運勢データ =====
+const dailyMessages = {
+  '♑': [
+    '大地の力がみなぎる一日です。積み重ねてきた努力が静かに実を結び始めています。焦らず、一歩一歩確実に前へ。',
+    '責任感が今日のあなたの最大の武器です。信頼している人からの相談ごとが舞い込むかもしれません。誠実な対応が運を引き寄せます。',
+    '土星の加護のもと、長期的な計画を見直すのに最適な日です。ゆっくりでも確実な道を選んでください。',
+    '現実的な視点があなたを守ります。衝動的な判断は避け、データと実績を信じて行動しましょう。',
+    '根を張るほどに、大きな花が咲きます。今日は基盤を固める行動に集中してください。運は着実に積み上げる者に味方します。'
+  ],
+  '♒': [
+    '革新のエネルギーがあなたを包んでいます。常識を超えたアイデアが宇宙から降り注いでいます。恐れずに表現してください。',
+    '人とのつながりが今日の運勢の鍵です。思いがけない出会いが新しい扉を開きます。オープンな姿勢で世界に向き合いましょう。',
+    '自由への渇望が高まる一日。型にはまらない発想で周囲を驚かせるときが来ました。あなたの個性が輝きます。',
+    '未来を見通す力が今日は特に冴えています。直感を信じて行動すれば、思わぬ幸運が舞い込むでしょう。',
+    '天王星のエネルギーが変革を促しています。古い習慣を手放し、新しい自分を迎え入れる準備をしましょう。'
+  ],
+  '♓': [
+    '深海の静けさのような穏やかな一日です。心の声に耳を傾けると、重要なメッセージが届いています。',
+    '夢と現実の境界が溶けていく日。芸術的なインスピレーションが満ち溢れています。創造的な活動に時間を使いましょう。',
+    '海王星の神秘的な力があなたを包んでいます。愛する人への思いを素直に伝えることで奇跡が起きるかもしれません。',
+    '感受性が最高潮に達しています。美しい音楽や自然に触れることで、魂が浄化されるでしょう。',
+    '境界を超えた共感の力があなたを輝かせます。困っている人への小さな親切が、大きな幸運となって戻ってきます。'
+  ],
+  '♈': [
+    '火星の情熱が燃え盛る一日！躊躇なく前へ進んでください。あなたの行動力が新しい可能性を切り拓きます。',
+    '最初に動く者に勝利が宿ります。今日は果敢に挑戦を。恐れていたことに踏み出す勇気が運命を変えます。',
+    '牡羊の炎が全身を包んでいます。情熱的な言動が人の心を動かし、強力な味方を引き寄せるでしょう。',
+    '競争の中で真の輝きが生まれます。全力で向き合えば、必ず結果がついてきます。一歩の勇気が全てを変えます。',
+    'エネルギーが無限に湧き出る今日。長らく保留にしていたことを今すぐ実行に移しましょう。星があなたを後押ししています。'
+  ],
+  '♉': [
+    '五感が研ぎ澄まされる贅沢な一日です。美しいものに囲まれながら過ごすことで、心が豊かに満たされます。',
+    '金星の恵みが降り注いでいます。愛情とお金の両面で嬉しいニュースが届くかもしれません。穏やかに受け取りましょう。',
+    '大地のように揺るぎない存在感を放つ日。信頼される言葉と行動が周囲との絆を深めます。',
+    '美食や芸術との出会いが運気を上げます。日常の中の小さな美しさに気づくことで、幸運の扉が開きます。',
+    'あなたの粘り強さが今日こそ報われます。長く取り組んできたことに、明るい兆しが見え始めるでしょう。'
+  ],
+  '♊': [
+    '知識と言葉があなたの翼になる日。アイデアが次々と溢れ出します。その閃きを形にしてみましょう。',
+    '新しい情報が幸運の扉を開きます。コミュニケーションを大切にすることで、予想外のチャンスが巡ってきます。',
+    '水星の力があなたの頭脳をフル回転させます。難しい問題も今日なら軽々と解決できるはずです。',
+    '二つの選択肢の前に立つかもしれません。どちらも正解です。あなたの直感が最高の答えを知っています。',
+    '言葉の力が最大限に高まっています。大切な人への思いを言葉に乗せて届けましょう。奇跡のような反応が返ってきます。'
+  ],
+  '♋': [
+    '月の満ち潮のように、豊かなエネルギーがあなたに流れ込む日。大切な人への愛情表現が喜ばれます。',
+    '家族や近しい人との絆が今日の運を左右します。温かい食事を囲んで語り合うことで、魂が癒されます。',
+    '直感が鋭く冴える一日です。心が「yes」と言っていることを信じて行動しましょう。',
+    '守りたいものへの思いが力になります。今日は大切なものを大切にする行動を取ることが幸運を招きます。',
+    '月の光があなたの道を照らしています。感情を素直に表現することで、理解し合える深いつながりが生まれます。'
+  ],
+  '♌': [
+    '太陽のように輝く日！あなたの存在自体が周囲を明るく照らしています。その輝きを遠慮なく放ちましょう。',
+    '創造力が最高潮に達しています。表現すること、伝えること、すべてが今日は黄金色に輝きます。',
+    '自信を持って舞台の中央に立つ時が来ました。あなたのカリスマが人々を惹きつけ、夢に近づかせてくれます。',
+    '愛情を注ぐほどに、愛情が返ってきます。今日は惜しみなく与えることで、豊かな循環が生まれます。',
+    '獅子の誇りが今日のあなたを守ります。困難な状況でも威風堂々と。その姿が周囲に勇気を与えます。'
+  ],
+  '♍': [
+    '緻密な分析力が冴え渡る日。細部への気配りが大きな成果を生み出します。丁寧な仕事が評価されます。',
+    '整理整頓が運気を上昇させます。デスクや部屋を片付けることで、滞っていたエネルギーが動き出します。',
+    '健康への意識が高まる一日。体に良いものを食べ、心と体を整えることが今日の最大の幸運を引き寄せます。',
+    '完璧を求める心が今日は輝きます。品質へのこだわりが、信頼と実績を積み上げていきます。',
+    '水星の知性があなたの問題解決能力を高めています。複雑に見える状況も、シンプルな答えが隠れています。'
+  ],
+  '♎': [
+    '美しい調和が訪れる一日。人間関係において最高の均衡が保たれ、争いが自然と解消されていきます。',
+    '金星の祝福が恋愛運を最高潮に引き上げています。美しい出会い、または大切な人との絆が深まる予感。',
+    '公平な目で物事を見ることで、隠れたチャンスが見えてきます。バランスの取れた判断が運を開きます。',
+    'あなたの洗練されたセンスが今日は特に輝きます。美的な選択があらゆる場面で良い結果をもたらします。',
+    '対話の力が最大限に高まっています。誠実な対話で長年の懸案事項が解決に向かうかもしれません。'
+  ],
+  '♏': [
+    '冥王星の深淵な力が目覚める日。表面には見えない本質を見抜く力が今日は格段に高まっています。',
+    '変容のエネルギーが流れています。古い自分を手放し、新しい自分へと脱皮する絶好のタイミングです。',
+    '深い感情が宝物です。今日感じることをすべて大切にしてください。それが未来の指針になります。',
+    '執着を手放すことで、想像を超えた豊かさが流れ込んできます。今日は手放す勇気を持ちましょう。',
+    '真実を見抜く力が今日は最強です。大切な決断をするなら今日が最適なタイミングです。直感を信じて。'
+  ],
+  '♐': [
+    '木星の大いなる祝福があなたを包んでいます。今日は思い切り大きな夢を描きましょう。宇宙はあなたの味方です。',
+    '冒険が幸運を呼ぶ日！いつもと違うルートを歩いたり、初めての場所に足を運んだりすることで運命の出会いが。',
+    '真理への探求心が高まっています。本を開き、旅を計画し、知識の扉を叩きましょう。豊かさが広がります。',
+    '楽観主義があなたの最強の武器です。ポジティブな言葉を使うほどに、現実が明るく輝いていきます。',
+    '自由の翼を広げる時が来ました。今日は制約を外し、魂が望む方向へ向かいましょう。星が道を照らしています。'
+  ]
+};
+
+const dailyAdvice = {
+  '♑': ['今日は新しいスキルの習得を始めるのに最適な日です。小さくても継続できることを一つ選んで始めましょう。','信頼できる人に相談することで新しい視点が得られます。一人で抱え込まずに声をかけてみてください。','財務の見直しを今日行うと吉。長期的な安心感が心を軽くします。','規則正しい生活が今日の運気を高めます。睡眠・食事・運動のリズムを整えましょう。','根気よく続けてきたことに今日は光が差し込みます。諦めずにもう一歩だけ踏み出してみてください。'],
+  '♒': ['新しいSNSや技術に触れることで運気が上がります。デジタルな挑戦を楽しんでみましょう。','個性を活かした表現活動が幸運を引き寄せます。自分だけの視点を大切にしてください。','友人グループでの活動が今日の運気を高めます。コミュニティへの参加を検討してみましょう。','固定観念を外す練習として、いつもと違う方法で物事に取り組んでみてください。','未来への投資が今日は特に効果的です。自己成長に時間とお金を使いましょう。'],
+  '♓': ['音楽や絵画など芸術に触れる時間を作ることで運気が上昇します。','瞑想や深呼吸など、心を静める習慣が今日の直感力を高めます。','夢を日記に書き留めることで、大切なメッセージが受け取れるかもしれません。','海や水辺に近づくことでエネルギーが補充されます。近くの川や噴水でも効果的です。','献身的な行動が今日の最大の幸運を呼びます。見返りを求めずに誰かのために動いてみましょう。'],
+  '♈': ['朝のウォーキングやジョギングがエネルギーをさらに高めます。体を動かして運気を上げましょう。','後回しにしていた連絡を今日することで良い流れが生まれます。勇気を出して動きましょう。','新しいことを始めるなら今日が最高のタイミングです。完璧な準備より、まず一歩を。','赤やオレンジなどの暖色系を身につけることで行動力と運気がアップします。','勝負事や競争ごとは今日が吉日。全力で挑めば必ず結果がついてきます。'],
+  '♉': ['美しい食事を丁寧に準備することで五感が満たされ、全体的な運気が上がります。','自然素材のものに触れることで安心感と幸運が増します。植物や木、石など。','今日の出費は「投資」と「浪費」を意識して区別することで金運がアップします。','大切な人に感謝の気持ちを言葉で伝えることで愛情運が高まります。','ゆったりとした時間の使い方が今日の幸運の鍵。急がず丁寧に行動しましょう。'],
+  '♊': ['読書やポッドキャストから新しいアイデアを取り入れることで知性運がアップします。','人の話をいつも以上によく聞くことで、重要な情報が舞い込んできます。','手書きでアイデアをメモすることで思考が整理され、良い判断ができるようになります。','SNSでの発信が今日は特に多くの人に届きます。大切なことをシェアしましょう。','マルチタスクより一点集中が今日は吉。一つのことを仕上げることで達成感と幸運が訪れます。'],
+  '♋': ['家族や大切な人のために料理することで愛情運が急上昇します。','月に感謝する気持ちを持つことで直感力が高まります。夜空を見上げてみてください。','古いアルバムや思い出の品を見返すことで、大切なことを思い出せるかもしれません。','自分の感情を正直に日記に書くことで、心が軽くなり運気が上昇します。','誰かのために祈ることが今日の最大の幸運を呼びます。思いやりがすべてを変えます。'],
+  '♌': ['自分を褒めることから一日を始めましょう。自己肯定感が高まるほどに運気も上がります。','ゴールドやサンイエローを身につけることで太陽のエネルギーを取り込めます。','得意なことを誰かに教えることで輝きがさらに増します。知識の共有が幸運を呼びます。','笑顔でいることが今日の最強のお守りです。周囲の人を笑顔にするほど、幸運が返ってきます。','自分の個性を恥ずかしがらずに出しましょう。それがあなたの最大の魅力であり武器です。'],
+  '♍': ['タスクリストを作ることで今日の生産性と運気が上がります。書き出すことで整理されます。','身の回りを整えることに15分だけ使いましょう。環境が整うと心も整い、運気が流れ込みます。','健康的な食事を意識することで体と心のバランスが取れ、判断力が高まります。','細かい気配りをすることで信頼が積み上がります。小さなことを丁寧にこなしましょう。','完璧を求めすぎずに「十分良い」を受け入れることで前進する力が生まれます。'],
+  '♎': ['おしゃれな場所でお茶を飲むなど、美しい環境に身を置くことで全体運がアップします。','大切な人との時間を積極的に作りましょう。二人の時間が愛情運を大きく高めます。','迷ったら美しい方、調和のある方を選びましょう。その判断が今日は必ず正解です。','周囲の人との平和的な関係を意識することで職場や家庭の空気が明るくなります。','自分の意見を穏やかに、しかし明確に伝えることが今日の幸運の鍵です。'],
+  '♏': ['深い集中力が必要な仕事や勉強に取り組むのに最適な日です。集中するほど成果が出ます。','一人の時間を持つことで内なる知恵が蘇ります。静かな場所で自分と向き合いましょう。','信頼できる人だけに深い話をしましょう。秘密を共有することで絆が格段に深まります。','手放すことが豊かさへの道です。不要なものを手放すことで新しいものが入ってきます。','真実を追い求める勇気が今日の最大の幸運です。本質を見抜く目を研ぎ澄ましましょう。'],
+  '♐': ['新しい場所に足を運ぶことで幸運が加速します。初めての体験が人生を豊かにします。','大きな夢を誰かに語ることで現実化が加速します。恥ずかしがらずに宣言しましょう。','学びへの投資が今日は特に効果的です。セミナーや本など知識を広げることに使いましょう。','ユーモアのある言葉が今日の人間関係を豊かにします。笑いは最高の潤滑油です。','行動量が今日の運気を決めます。考えるより動く。完璧な準備より即実行が吉日です。']
+};
+
+const dailyLuckyColors = ['ロイヤルパープル','ミステリアスブルー','ゴールデン','シルバー','ディープレッド','エメラルド','サファイアブルー','ローズクォーツ','アメジスト','ターコイズ','コーラル','ラベンダー','ルビーレッド','ブロンズゴールド','スカイブルー','クリームホワイト','チャコールグレー','ヴァイオレット','ミントグリーン','シャンパンゴールド'];
+const dailyLuckyNums = [1,2,3,4,5,6,7,8,9,11,12,13,15,17,21,22,24,28,33,36,44,55,66,77,88,99];
+const moonPhases = ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+const fortuneWords = { 90: '絶好調', 80: '好調', 70: '良好', 60: 'まずまず', 50: '平穏', 40: '注意', 30: '要注意' };
+
+function getFortuneWord(val) {
+  const keys = Object.keys(fortuneWords).map(Number).sort((a,b)=>b-a);
+  for (const k of keys) { if (val >= k) return fortuneWords[k]; }
+  return '試練';
+}
+
+function getStars(val) {
+  const n = Math.round(val / 20);
+  return '<span class="star-filled">' + '★'.repeat(n) + '</span><span class="star-empty">' + '★'.repeat(5 - n) + '</span>';
+}
+
+function todaySeed() {
+  const t = new Date();
+  return t.getFullYear() * 10000 + (t.getMonth() + 1) * 100 + t.getDate();
+}
+
+function initDailyPage() {
+  // 今日の日付
+  const today = new Date();
+  const weekdays = ['日','月','火','水','木','金','土'];
+  document.getElementById('todayDateText').textContent =
+    `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日（${weekdays[today.getDay()]}）`;
+  const seed = todaySeed();
+  document.getElementById('moonPhaseIcon').textContent = moonPhases[seededRand(seed, 0, moonPhases.length - 1)];
+
+  // 星座ボタン生成
+  const sel = document.getElementById('zodiacSelector');
+  if (sel.children.length === 0) {
+    zodiacData.forEach((z, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'zodiac-btn';
+      btn.innerHTML = `<span class="z-symbol">${z.symbol}</span><span class="z-name">${z.name}</span>`;
+      btn.onclick = () => showDailyFortune(z, i, btn);
+      sel.appendChild(btn);
+    });
+  }
+}
+
+function showDailyFortune(z, idx, btn) {
+  // ボタン選択状態
+  document.querySelectorAll('.zodiac-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  const seed = todaySeed();
+  const s1 = seed * (idx + 1);
+
+  // ヘッダー
+  document.getElementById('dailySymbol').textContent = z.symbol;
+  document.getElementById('dailyZodiacName').textContent = `${z.name} / ${z.english}`;
+
+  // メッセージ
+  const msgs = dailyMessages[z.symbol] || dailyMessages['♑'];
+  document.getElementById('dailyMessage').textContent = msgs[seededRand(s1 * 3, 0, msgs.length - 1)];
+
+  // 4項目運勢
+  const items = [
+    { icon: '🌟', label: '総合運', val: seededRand(s1 * 7, 45, 100) },
+    { icon: '💕', label: '恋愛運', val: seededRand(s1 * 11, 35, 100) },
+    { icon: '💼', label: '仕事運', val: seededRand(s1 * 13, 40, 100) },
+    { icon: '💰', label: '金運',   val: seededRand(s1 * 17, 30, 100) }
+  ];
+  document.getElementById('daily4Grid').innerHTML = items.map(it => `
+    <div class="fortune-item">
+      <span class="fortune-item-icon">${it.icon}</span>
+      <div class="fortune-item-label">${it.label}</div>
+      <div class="fortune-stars">${getStars(it.val)}</div>
+      <div class="fortune-item-score">${it.val}</div>
+      <div class="fortune-item-word">${getFortuneWord(it.val)}</div>
+    </div>
+  `).join('');
+
+  // ラッキーアイテム
+  const colorVal = dailyLuckyColors[seededRand(s1 * 19, 0, dailyLuckyColors.length - 1)];
+  const numVal   = dailyLuckyNums[seededRand(s1 * 23, 0, dailyLuckyNums.length - 1)];
+  document.getElementById('dailyLuckyDuo').innerHTML = `
+    <div class="lucky-card">
+      <span class="lucky-card-icon">🎨</span>
+      <div class="lucky-card-label">Lucky Color</div>
+      <div class="lucky-card-value">${colorVal}</div>
+    </div>
+    <div class="lucky-card">
+      <span class="lucky-card-icon">✦</span>
+      <div class="lucky-card-label">Lucky Number</div>
+      <div class="lucky-card-value">${numVal}</div>
+    </div>
+  `;
+
+  // アドバイス
+  const adv = dailyAdvice[z.symbol] || dailyAdvice['♑'];
+  document.getElementById('dailyAdvice').textContent = adv[seededRand(s1 * 29, 0, adv.length - 1)];
+
+  // 表示
+  const result = document.getElementById('dailyResult');
+  result.style.display = 'block';
+  result.style.animation = 'none';
+  requestAnimationFrame(() => {
+    result.style.animation = 'fadeInUp 0.5s ease';
+  });
+  launchParticles();
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function launchParticles() {
