@@ -559,7 +559,6 @@ document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>
 function initHome(){
   const d=new Date();const seed=todaySeed();
   const dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）';
-  const visitors=seededRand(seed,1500,3500);
   const streak=getStreak();
   const total=calcTotalPoints(streak);
   const user=getUser();
@@ -579,7 +578,6 @@ function initHome(){
   document.getElementById('homePage').innerHTML=
     '<div class="card gold">'+
       '<div style="text-align:center;font-size:14px;color:var(--text2);">'+dateStr+' '+moonPhase()+'</div>'+
-      '<div style="text-align:center;margin-top:6px;font-size:13px;color:var(--gold-ll);">今日 '+visitors.toLocaleString()+'人が占いました</div>'+
     '</div>'+
     '<div class="card" style="display:flex;align-items:center;gap:12px;">'+
       '<div style="font-size:32px;">🔥</div>'+
