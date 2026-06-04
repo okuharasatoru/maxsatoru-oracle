@@ -683,6 +683,224 @@
     .tabs { flex-direction: column; }
   }
 
+  /* ===== タロットページ ===== */
+  .tarot-page { width: 100%; max-width: 700px; animation: fadeInUp 0.6s ease; }
+
+  .tarot-mode-btns {
+    display: flex; gap: 10px; margin-bottom: 24px;
+  }
+  .tarot-mode-btn {
+    flex: 1; padding: 14px 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 14px; color: var(--silver);
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+    letter-spacing: 0.08em; cursor: pointer;
+    transition: all 0.3s; text-align: center;
+  }
+  .tarot-mode-btn.active {
+    background: linear-gradient(135deg, var(--purple), var(--violet));
+    border-color: var(--gold); color: var(--gold-light);
+    box-shadow: 0 4px 20px rgba(107,47,160,0.5);
+  }
+
+  /* デッキエリア */
+  .tarot-deck-area {
+    text-align: center; padding: 30px 0 20px;
+  }
+  .tarot-deck-hint {
+    font-size: 0.8rem; color: var(--silver);
+    letter-spacing: 0.2em; margin-bottom: 20px;
+  }
+  .shuffle-btn {
+    padding: 14px 40px; margin-bottom: 28px;
+    background: linear-gradient(135deg, #4a1a8a, var(--violet));
+    border: 1px solid var(--gold); border-radius: 30px;
+    color: var(--gold-light); font-family: 'Noto Serif JP', serif;
+    font-size: 1rem; letter-spacing: 0.2em; cursor: pointer;
+    transition: all 0.4s; position: relative; overflow: hidden;
+  }
+  .shuffle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(107,47,160,0.6);
+  }
+  .shuffle-btn.shuffling { animation: shake-card 0.6s ease; }
+  @keyframes shake-card {
+    0%,100%{transform:rotate(0)}
+    20%{transform:rotate(-8deg) scale(1.05)}
+    40%{transform:rotate(8deg) scale(1.05)}
+    60%{transform:rotate(-5deg)}
+    80%{transform:rotate(5deg)}
+  }
+
+  /* カードスロット */
+  .card-slots {
+    display: flex; gap: 16px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .card-slot {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px;
+  }
+  .card-slot-label {
+    font-size: 0.68rem; color: var(--silver);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+
+  /* タロットカード */
+  .tarot-card {
+    width: clamp(90px, 22vw, 120px);
+    height: clamp(150px, 36vw, 200px);
+    perspective: 800px; cursor: pointer;
+  }
+  .tarot-card-inner {
+    width: 100%; height: 100%;
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+  }
+  .tarot-card.flipped .tarot-card-inner { transform: rotateY(180deg); }
+  .tarot-card.reversed .tarot-card-inner { transform: rotateY(180deg) rotate(180deg); }
+
+  .tarot-card-front, .tarot-card-back {
+    position: absolute; inset: 0;
+    border-radius: 12px; backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 1px solid;
+  }
+  .tarot-card-back {
+    background: linear-gradient(135deg, #1a0a3e, #0a0e2e);
+    border-color: rgba(212,175,55,0.4);
+    cursor: pointer;
+  }
+  .tarot-card-back::before {
+    content: '✦'; font-size: 2rem; color: rgba(212,175,55,0.3);
+    animation: spin-slow 8s linear infinite;
+  }
+  .tarot-card-back:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(212,175,55,0.3); }
+  .tarot-card-back .card-back-pattern {
+    position: absolute; inset: 6px;
+    border: 1px solid rgba(212,175,55,0.15); border-radius: 8px;
+    pointer-events: none;
+  }
+
+  .tarot-card-front {
+    background: linear-gradient(160deg, #1a0a3e 0%, #2a0a5e 50%, #0a0e2e 100%);
+    border-color: rgba(212,175,55,0.5);
+    transform: rotateY(180deg);
+    padding: 8px 6px; gap: 4px;
+    box-shadow: 0 0 25px rgba(107,47,160,0.4);
+  }
+  .tarot-card-front::after {
+    content: ''; position: absolute; inset: 4px;
+    border: 1px solid rgba(212,175,55,0.2); border-radius: 9px;
+    pointer-events: none;
+  }
+  .tarot-card-emoji { font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1; }
+  .tarot-card-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem; color: var(--gold); letter-spacing: 0.15em;
+  }
+  .tarot-card-name {
+    font-size: clamp(0.6rem, 1.8vw, 0.72rem);
+    color: var(--gold-light); text-align: center;
+    line-height: 1.3; font-weight: 400;
+    padding: 0 4px;
+  }
+  .tarot-card-rev {
+    font-size: 0.55rem; color: #ff9090; letter-spacing: 0.1em;
+  }
+
+  /* カードをめくるアニメーション */
+  .tarot-card.dealing {
+    animation: deal-in 0.5s cubic-bezier(0.17, 0.67, 0.35, 1) both;
+  }
+  @keyframes deal-in {
+    from { transform: scale(0.5) translateY(40px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  /* タロット結果 */
+  .tarot-result { animation: fadeInUp 0.6s ease; }
+
+  .tarot-spread-label {
+    text-align: center; margin: 24px 0 16px;
+    font-size: 0.75rem; color: var(--silver); letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+
+  .tarot-card-detail {
+    background: linear-gradient(135deg, rgba(26,10,62,0.9), rgba(10,14,46,0.95));
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 20px; padding: clamp(18px,4vw,30px);
+    margin-bottom: 14px; position: relative; overflow: hidden;
+  }
+  .tarot-card-detail::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .tarot-detail-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+  }
+  .tarot-detail-emoji { font-size: clamp(2rem, 6vw, 2.8rem); flex-shrink: 0; }
+  .tarot-detail-info { flex: 1; }
+  .tarot-detail-position {
+    font-size: 0.68rem; color: var(--gold); letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 3px;
+  }
+  .tarot-detail-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .tarot-detail-rev-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 10px; margin-top: 4px;
+    font-size: 0.65rem; letter-spacing: 0.1em;
+  }
+  .badge-upright { background: rgba(100,200,100,0.15); border: 1px solid rgba(100,200,100,0.4); color: #90d890; }
+  .badge-reversed { background: rgba(255,100,100,0.15); border: 1px solid rgba(255,100,100,0.4); color: #ff9090; }
+
+  .tarot-keywords {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+  }
+  .tarot-kw {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.7rem;
+    background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25);
+    color: var(--gold-light);
+  }
+  .tarot-meaning {
+    line-height: 1.9; font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+    color: rgba(240,234,248,0.88); font-weight: 300;
+  }
+
+  /* 総合メッセージ */
+  .tarot-overall {
+    background: linear-gradient(135deg, rgba(61,26,120,0.5), rgba(107,47,160,0.3));
+    border: 1px solid rgba(212,175,55,0.35); border-radius: 18px;
+    padding: clamp(18px,4vw,28px); margin-bottom: 20px; text-align: center;
+  }
+  .tarot-overall-label {
+    font-size: 0.72rem; letter-spacing: 0.3em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .tarot-overall-text {
+    line-height: 1.9; font-size: clamp(0.88rem, 2.5vw, 1rem);
+    color: var(--white); font-weight: 300;
+  }
+
+  .retarot-btn {
+    display: block; margin: 20px auto 0; padding: 12px 36px;
+    background: transparent; border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 30px; color: var(--silver);
+    font-family: 'Noto Serif JP', serif; font-size: 0.85rem;
+    letter-spacing: 0.2em; cursor: pointer; transition: all 0.3s;
+  }
+  .retarot-btn:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 20px rgba(212,175,55,0.2); }
+
   /* ===== ページナビ ===== */
   .page-nav {
     display: flex;
@@ -988,6 +1206,7 @@
   <nav class="page-nav">
     <button class="page-nav-btn active" onclick="switchPage('oracle', this)">✦ 命運占い</button>
     <button class="page-nav-btn" onclick="switchPage('daily', this)">☽ 今日の運勢</button>
+    <button class="page-nav-btn" onclick="switchPage('tarot', this)">🃏 タロット</button>
   </nav>
 
   <!-- 占いページ -->
@@ -1172,6 +1391,37 @@
 
     </div><!-- /#dailyResult -->
   </div><!-- /#dailyPage -->
+
+  <!-- タロットページ -->
+  <div id="tarotPage" class="tarot-page" style="display:none;">
+
+    <!-- モード選択 -->
+    <div class="tarot-mode-btns">
+      <button class="tarot-mode-btn active" id="mode1btn" onclick="setTarotMode(1)">🃏 1枚引き</button>
+      <button class="tarot-mode-btn" id="mode3btn" onclick="setTarotMode(3)">🃏🃏🃏 3枚引き（過去・現在・未来）</button>
+    </div>
+
+    <!-- デッキ -->
+    <div class="result-card" id="tarotDeckCard">
+      <div class="tarot-deck-area">
+        <p class="tarot-deck-hint" id="tarotHint">カードをシャッフルして、引いてください</p>
+        <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleDeck()">✦ カードをシャッフル ✦</button>
+        <div class="card-slots" id="cardSlots"></div>
+        <p style="font-size:0.72rem;color:rgba(192,192,192,0.5);margin-top:12px;letter-spacing:0.1em;" id="flipHint" style="display:none">裏向きのカードをタップして引いてください</p>
+      </div>
+    </div>
+
+    <!-- 結果 -->
+    <div class="tarot-result" id="tarotResult" style="display:none;">
+      <div id="tarotCardDetails"></div>
+      <div class="tarot-overall" id="tarotOverall" style="display:none;">
+        <div class="tarot-overall-label">✦ 総合メッセージ ✦</div>
+        <p class="tarot-overall-text" id="tarotOverallText"></p>
+      </div>
+      <button class="retarot-btn" onclick="resetTarot()">↩ もう一度引く</button>
+    </div>
+
+  </div><!-- /#tarotPage -->
 
   <div class="footer">
     <p>✦ MAXSATORU ORACLE ✦ 星詠み占い ✦</p>
@@ -1727,11 +1977,13 @@ function resetForm() {
 function switchPage(page, btn) {
   document.querySelectorAll('.page-nav-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('oraclePage').style.display = page === 'oracle' ? 'flex' : 'none';
-  document.getElementById('oraclePage').style.flexDirection = 'column';
-  document.getElementById('oraclePage').style.alignItems = 'center';
+  const op = document.getElementById('oraclePage');
+  op.style.display = page === 'oracle' ? 'flex' : 'none';
+  op.style.flexDirection = 'column'; op.style.alignItems = 'center';
   document.getElementById('dailyPage').style.display = page === 'daily' ? 'block' : 'none';
+  document.getElementById('tarotPage').style.display = page === 'tarot' ? 'block' : 'none';
   if (page === 'daily') initDailyPage();
+  if (page === 'tarot') initTarotPage();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2403,6 +2655,298 @@ function showDailyFortune(z, idx, btn) {
   });
   launchParticles();
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ===== タロットデータ（大アルカナ22枚）=====
+const tarotCards = [
+  {
+    num:'0', name:'愚者', en:'The Fool', emoji:'🌟',
+    keywords:['新出発','冒険','自由','純粋','無限の可能性'],
+    upright:'新しい旅の始まりを告げるカードです。純粋な心で未知の世界へと踏み出す勇気が今のあなたに宿っています。常識や過去の経験に縛られず、自由な発想で進むことが幸運を引き寄せます。失敗を恐れず、楽観的な気持ちで一歩を踏み出してください。宇宙があなたの冒険を応援しています。',
+    reversed:'無謀さや計画性のなさに注意が必要です。衝動的な行動が後悔を生む可能性があります。少しだけ立ち止まり、行動の前に考える時間を持ちましょう。自由を求めるあまり、大切な責任を見失っていないか確認してください。'
+  },
+  {
+    num:'I', name:'魔術師', en:'The Magician', emoji:'⚡',
+    keywords:['意志力','スキル','創造力','行動','実現'],
+    upright:'あなたには全てのツールが揃っています。知性・感情・意志・物質、四つの力を自在に操る能力が今のあなたには備わっています。アイデアを現実に変える絶好の時機です。集中力と行動力を発揮することで、望む結果を確実に引き寄せられます。',
+    reversed:'才能を活かしきれていない状態です。先延ばしや自信のなさが能力の発揮を妨げています。また、才能を不正直な目的に使うことへの警告でもあります。自分の本来の力を信じ、正しい方向へ向けて使いましょう。'
+  },
+  {
+    num:'II', name:'女教皇', en:'The High Priestess', emoji:'🌙',
+    keywords:['直感','神秘','内省','知恵','潜在意識'],
+    upright:'表面に見えるものだけを信じないでください。深い直感と潜在意識のメッセージが今のあなたに重要な真実を伝えようとしています。静かに内側に耳を傾けることで、論理では辿り着けない答えが見つかります。今は答えを急がず、神秘の流れに身を任せましょう。',
+    reversed:'直感を無視して論理だけで判断しようとしています。隠れた真実や重要な情報を見逃している可能性があります。また、秘密や嘘が関係を複雑にしているサインでもあります。内なる声をもっと大切にしてください。'
+  },
+  {
+    num:'III', name:'女帝', en:'The Empress', emoji:'🌸',
+    keywords:['豊かさ','母性','自然','繁栄','創造'],
+    upright:'豊穣と繁栄のエネルギーが溢れています。愛情、美、豊かさが今のあなたの周りに満ちています。創造的な活動や人間関係において素晴らしい実りが期待できます。自然のリズムに合わせ、焦らず育てていけば必ず豊かな収穫が訪れます。愛を与えることで更なる愛が生まれます。',
+    reversed:'創造性が滞っていたり、依存関係に陥っている可能性があります。過保護になりすぎていないか、または自分自身の成長を怠っていないか振り返りましょう。自然のリズムを無視した無理な進め方は逆効果です。'
+  },
+  {
+    num:'IV', name:'皇帝', en:'The Emperor', emoji:'👑',
+    keywords:['権威','秩序','安定','リーダーシップ','構造'],
+    upright:'強力なリーダーシップと規律があなたを成功へ導きます。明確な目標と計画を持ち、権威ある姿勢で物事に取り組むことで、周囲からの信頼と尊敬を得られます。感情よりも理性と秩序を重視することが今は大切です。基盤をしっかりと固めることで長期的な成功が約束されます。',
+    reversed:'権力の乱用や過度なコントロールへの警告です。頑固さや柔軟性のなさが周囲との関係を悪化させています。また、父親的な存在との問題が影響している場合もあります。権威を振りかざすのではなく、導くリーダーシップを発揮しましょう。'
+  },
+  {
+    num:'V', name:'法王', en:'The Hierophant', emoji:'⛪',
+    keywords:['伝統','信仰','指導','知恵','制度'],
+    upright:'伝統的な価値観や精神的な指導の中に重要な答えがあります。信頼できるメンターや権威ある存在からの助言を大切にしてください。組織やコミュニティの中での役割を果たすことで、深い充実感が得られます。既存のシステムの中で学ぶことが今の成長につながります。',
+    reversed:'既存のルールや伝統に縛られすぎています。形式や制度への固執が本質的な成長を妨げています。非伝統的なアプローチや自分自身の内なる信念に従うことも重要です。権威への盲目的な従属を見直してみましょう。'
+  },
+  {
+    num:'VI', name:'恋人', en:'The Lovers', emoji:'💑',
+    keywords:['愛','選択','調和','価値観','関係'],
+    upright:'重要な選択と深い愛のエネルギーが働いています。恋愛だけでなく、人生における大切な選択の岐路に立っています。自分の価値観と心の声に従った選択が最良の結果をもたらします。二者択一の場面では、恐れではなく愛と喜びを基準に選んでください。真の調和は自分自身との調和から始まります。',
+    reversed:'関係における不調和や、自分の価値観と相反する選択をしている状態です。誰かのために自分を犠牲にしすぎていないか確認しましょう。また、優柔不断さが状況を悪化させているかもしれません。自分の本当の気持ちに正直になることが大切です。'
+  },
+  {
+    num:'VII', name:'戦車', en:'The Chariot', emoji:'🏆',
+    keywords:['勝利','意志','前進','克服','自制'],
+    upright:'強い意志と自制心によって勝利が手に入ります。対立する力や困難な状況を乗り越えるエネルギーが今のあなたに宿っています。明確な目標に向かって集中し続けることで、大きな障壁も突破できます。感情と理性のバランスを保ちながら前進することが成功への鍵です。',
+    reversed:'方向性を見失い、力が分散している状態です。感情のコントロールができておらず、衝動的な行動が問題を引き起こしています。また、強引すぎるアプローチが周囲との摩擦を生んでいるかもしれません。立ち止まって方向を確認しましょう。'
+  },
+  {
+    num:'VIII', name:'力', en:'Strength', emoji:'🦁',
+    keywords:['勇気','忍耐','内なる力','慈悲','コントロール'],
+    upright:'真の強さは力ずくではなく、慈悲と優しさから生まれます。困難な状況や自分の内なる野性的な衝動を、強制ではなく愛と忍耐でコントロールする能力があなたにはあります。長期的な取り組みにおいて、このカードは必ず報われると告げています。穏やかさこそが最大の力です。',
+    reversed:'自信の喪失や自己疑念に苛まれています。内なる恐れが行動を妨げています。または逆に、力を誤った方向に使っている可能性があります。自分への優しさを忘れずに。内なる獅子はあなたの中に確かに存在しています。'
+  },
+  {
+    num:'IX', name:'隠者', en:'The Hermit', emoji:'🔦',
+    keywords:['内省','孤独','求道','指導','内なる光'],
+    upright:'一人で内側に向かう時間が今は必要です。外の喧騒から離れ、自分自身の内なる声と向き合うことで、重要な真実が見えてきます。他者の意見ではなく、自分の内なる光に従うことが今の道標です。この孤独な探求の先に、深い叡智と新たな方向性が待っています。',
+    reversed:'孤立を選びすぎており、周囲の助けを受け入れることができていません。または逆に、一人で考える時間が足りず、自分を見失っています。内省と社会的つながりのバランスを取り戻しましょう。'
+  },
+  {
+    num:'X', name:'運命の輪', en:'Wheel of Fortune', emoji:'☯️',
+    keywords:['転機','サイクル','運命','チャンス','変化'],
+    upright:'運命の大きな転換点が訪れています。良い変化が次々と訪れる幸運のサイクルに入っています。宇宙のリズムに乗ることで、予期せぬ幸運や機会が舞い込んできます。全ての出来事には意味があり、良いことも悪いことも永遠には続きません。今この流れに乗りましょう。',
+    reversed:'悪い運気のサイクルに入っているように感じるかもしれませんが、それも必ず終わります。変化への抵抗が状況を悪化させています。コントロールできないことを手放し、流れに身を任せることが今は最善の策です。'
+  },
+  {
+    num:'XI', name:'正義', en:'Justice', emoji:'⚖️',
+    keywords:['公正','真実','因果','責任','均衡'],
+    upright:'公正さと真実が今の状況を支配しています。これまでの行動の結果が正しく反映される時期です。誠実に行動してきた人には正当な報酬が、不正直であった人には相応の結果が訪れます。重要な決断や法的な問題においても、真実に基づいた公正な結果が得られるでしょう。',
+    reversed:'不公正な状況に直面しているか、または自分自身が誠実さを欠いた行動をしています。自分の行動の結果から逃げようとしていないか確認しましょう。また、過度な自己批判も問題です。バランスの取れた視点で自分を見つめ直してください。'
+  },
+  {
+    num:'XII', name:'吊られた男', en:'The Hanged Man', emoji:'🌀',
+    keywords:['犠牲','待機','新視点','悟り','解放'],
+    upright:'今は行動ではなく、待つことと手放すことが求められています。一時的な犠牲や停滞に見えることが、実は大きな智慧と洞察をもたらしています。視点を変えることで、全く新しい解決策が見えてきます。急がずに、この宙吊りの状態の中にある贈り物を受け取りましょう。',
+    reversed:'無駄な犠牲を強いられている、または変化を拒んでいる状態です。行動が必要なのに先延ばしにしている可能性があります。また、マルチレイヤーではなく自己中心的な判断をしていないか振り返りましょう。'
+  },
+  {
+    num:'XIII', name:'死神', en:'Death', emoji:'🦋',
+    keywords:['変容','終わり','再生','移行','解放'],
+    upright:'古いものの終わりと新しいものの始まりを告げるカードです。物理的な死を意味するのではなく、変容と再生を象徴しています。手放すことへの恐れを乗り越えた先に、想像を超えた豊かな新しい人生が待っています。このサイクルの終わりを受け入れることで、真の再生が始まります。',
+    reversed:'変化への強い抵抗があります。古いパターンや関係に執着することで、新しい可能性の扉を自ら閉じています。また、変化が中途半端で完全な変容が起きていない状態かもしれません。終わりを受け入れる勇気を持ちましょう。'
+  },
+  {
+    num:'XIV', name:'節制', en:'Temperance', emoji:'🌈',
+    keywords:['調和','バランス','忍耐','調整','癒し'],
+    upright:'全てのことにおいてバランスと節制が幸運をもたらします。対立するものを調和させる力があなたには備わっています。焦らず着実に、中庸を保ちながら物事を進めることで、長期的な成功と心の平和が得られます。今は極端に走らず、穏やかな流れに身を任せましょう。',
+    reversed:'極端に走りすぎており、バランスを失っています。過剰か不足か、どちらかの状態に陥っています。また、忍耐が切れて衝動的な行動に走りやすい時期です。深呼吸して中庸の道に戻ることが今最も必要なことです。'
+  },
+  {
+    num:'XV', name:'悪魔', en:'The Devil', emoji:'🔗',
+    keywords:['束縛','執着','物質','誘惑','解放'],
+    upright:'何らかの執着や依存、または物質的な誘惑があなたを縛っています。しかし、その鎖は自分で外すことができます。今のあなたを制限しているものの正体を直視することが、解放への第一歩です。恐れや欲望に支配されるのではなく、より高い意識でその状況を見つめ直してください。',
+    reversed:'これまで縛られていたものから解放されつつあります。依存や執着のパターンを手放す力が高まっています。ただし、解放後の自由をどう使うかが重要です。新たな執着に陥らないよう、意識的な選択を続けましょう。'
+  },
+  {
+    num:'XVI', name:'塔', en:'The Tower', emoji:'⚡',
+    keywords:['崩壊','啓示','突然の変化','解放','再構築'],
+    upright:'突然の激しい変化や衝撃的な出来事が訪れるかもしれません。しかし、それは古い誤った基盤が崩れ去り、より真実の上に再建される必要性を示しています。苦しく感じるかもしれませんが、この破壊は実は解放と再生への道です。全てが壊れた後に、真のものだけが残ります。',
+    reversed:'大きな変化を避けようとしていますが、それは遅らせることしかできません。または、すでに起きた激変から立ち直るための時間が必要な状態です。崩壊を受け入れることで、より良い再建が可能になります。'
+  },
+  {
+    num:'XVII', name:'星', en:'The Star', emoji:'⭐',
+    keywords:['希望','癒し','インスピレーション','信頼','再生'],
+    upright:'嵐の後の穏やかな星空のように、希望と癒しのエネルギーが溢れています。困難を乗り越えた後の平和と恵みのサインです。自分の夢と可能性を信じてください。宇宙があなたを優しく導いています。インスピレーションが豊かに降り注ぎ、あなたの才能が輝き始めます。',
+    reversed:'希望を失い、信念が揺らいでいます。自分の可能性を信じることができず、諦めの気持ちが強まっています。または、非現実的な夢に囚われて現実から目を背けています。星の光は消えていません。少しだけ上を向いてみてください。'
+  },
+  {
+    num:'XVIII', name:'月', en:'The Moon', emoji:'🌕',
+    keywords:['幻想','恐れ','潜在意識','混乱','直感'],
+    upright:'物事の全てが見えているわけではありません。潜在意識からのメッセージや恐れが今の状況に影響しています。直感を大切にしながらも、幻想に惑わされないよう注意が必要です。月の光に照らされた曖昧な道を慎重に進んでください。この不確かさの中に重要な真実が隠れています。',
+    reversed:'混乱や幻想から抜け出しつつあります。隠れていた真実が明らかになり始めています。または、恐れや不安が以前より薄れてきています。潜在意識のメッセージをより明確に理解できるようになってきているサインです。'
+  },
+  {
+    num:'XIX', name:'太陽', en:'The Sun', emoji:'☀️',
+    keywords:['喜び','成功','活力','明晰','祝福'],
+    upright:'最も吉兆なカードの一枚です。喜び、成功、活力、明晰さが今のあなたを満たしています。全てのことが明るく照らされ、誤魔化しや曖昧さが消えていきます。子供のような純粋な喜びと情熱で生きることで、全てが順調に進みます。あなたの人生は今、輝かしい光に包まれています。',
+    reversed:'少し輝きが陰っていますが、太陽の力は決して消えません。一時的な楽観主義の過剰や、現実から目を背けた楽天的すぎる態度への注意です。または、喜びを感じることに躊躇している状態です。内側に太陽は輝き続けています。'
+  },
+  {
+    num:'XX', name:'審判', en:'Judgement', emoji:'🎺',
+    keywords:['覚醒','再生','赦し','召喚','評価'],
+    upright:'魂の深い部分からの呼びかけに応える時が来ました。過去の自分を赦し、新しい自分へと覚醒する機会です。重要な評価や転換点が訪れており、それはポジティブな形で現れます。長い間の取り組みが正当に評価される時期です。内なる呼びかけに応え、次のステージへと進みましょう。',
+    reversed:'過去への後悔や自己批判が前進を妨げています。赦しを拒んでいる状態、特に自分自身を赦すことができていません。また、魂の召喚を無視して世俗的なことに囚われています。立ち止まって自己を見つめ直すことが今必要です。'
+  },
+  {
+    num:'XXI', name:'世界', en:'The World', emoji:'🌍',
+    keywords:['完成','達成','統合','完全性','旅の終わり'],
+    upright:'一つのサイクルが完成し、素晴らしい達成感に満たされる時です。長い旅の終わりに、全てが美しく統合されています。成功、充実感、世界との調和。あなたは今、求めていた全てを手にするか、あるいはその直前にいます。この完成を喜び、そして次の新しい旅への準備を始めましょう。',
+    reversed:'完成間近なのに、最後の一歩を踏み出せていません。または、過去の成功にしがみつきすぎて新しい可能性への扉を開けていません。完璧主義が完成を妨げています。「十分に良い」を受け入れ、前に進む勇気を持ちましょう。'
+  }
+];
+
+const tarotOverallMessages3 = [
+  '三枚のカードが語る物語は、過去の経験があなたを今この場所に導き、現在の選択が未来の輝きを決めるということです。全ての流れはあなたの成長のために動いています。',
+  '過去・現在・未来の三つの視点から見えてくるのは、あなたが今まさに重要な転換点にいるということです。宇宙はあなたを次のステージへと優しく導いています。',
+  '三枚のカードが紡ぐメッセージは「信頼」です。過去があなたを強くし、現在があなたを試し、未来があなたに輝く可能性を約束しています。',
+  '時間の流れの中で、あなたの魂は確実に成長しています。三枚のカードはそれぞれに重要な知恵を与えています。全てを統合して、あなただけの道を歩んでください。',
+  '過去の苦労と現在の課題は、より輝かしい未来への布石です。三枚のカードが示す旅路を信頼し、一歩一歩丁寧に歩んでいきましょう。'
+];
+
+let tarotMode = 1;
+let tarotDeck = [];
+let drawnCards = [];
+let flippedCount = 0;
+
+function initTarotPage() {
+  if (document.getElementById('cardSlots').children.length === 0) {
+    buildCardSlots();
+  }
+}
+
+function setTarotMode(n) {
+  tarotMode = n;
+  document.getElementById('mode1btn').classList.toggle('active', n === 1);
+  document.getElementById('mode3btn').classList.toggle('active', n === 3);
+  resetTarot();
+}
+
+function buildCardSlots() {
+  const slots = document.getElementById('cardSlots');
+  slots.innerHTML = '';
+  const labels = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
+  for (let i = 0; i < tarotMode; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'card-slot';
+    if (labels[i]) {
+      const lbl = document.createElement('div');
+      lbl.className = 'card-slot-label';
+      lbl.textContent = labels[i];
+      slot.appendChild(lbl);
+    }
+    const card = document.createElement('div');
+    card.className = 'tarot-card';
+    card.id = `tcard-${i}`;
+    card.innerHTML = `<div class="tarot-card-inner"><div class="tarot-card-back"><div class="card-back-pattern"></div></div><div class="tarot-card-front"></div></div>`;
+    slot.appendChild(card);
+    slots.appendChild(slot);
+  }
+}
+
+function shuffleDeck() {
+  const btn = document.getElementById('shuffleBtn');
+  btn.classList.add('shuffling');
+  setTimeout(() => btn.classList.remove('shuffling'), 600);
+
+  // シャッフル
+  tarotDeck = [...tarotCards].sort(() => Math.random() - 0.5);
+  drawnCards = [];
+  flippedCount = 0;
+
+  // カードスロット再構築
+  buildCardSlots();
+
+  // カードを配る
+  document.getElementById('tarotResult').style.display = 'none';
+  document.getElementById('tarotHint').textContent = 'カードをタップしてめくってください';
+  document.getElementById('flipHint').style.display = 'block';
+
+  for (let i = 0; i < tarotMode; i++) {
+    const card = tarotDeck[i];
+    const isReversed = Math.random() > 0.5;
+    drawnCards.push({ card, isReversed });
+
+    const el = document.getElementById(`tcard-${i}`);
+    el.style.animationDelay = `${i * 0.15}s`;
+    el.classList.add('dealing');
+    el.onclick = () => flipCard(i);
+  }
+}
+
+function flipCard(idx) {
+  const el = document.getElementById(`tcard-${idx}`);
+  if (el.classList.contains('flipped') || el.classList.contains('reversed')) return;
+
+  const { card, isReversed } = drawnCards[idx];
+  const front = el.querySelector('.tarot-card-front');
+  front.innerHTML = `
+    <div class="tarot-card-num">${card.num}</div>
+    <div class="tarot-card-emoji">${card.emoji}</div>
+    <div class="tarot-card-name">${card.name}</div>
+    ${isReversed ? '<div class="tarot-card-rev">逆位置</div>' : ''}
+  `;
+
+  el.classList.add(isReversed ? 'reversed' : 'flipped');
+  el.onclick = null;
+  flippedCount++;
+
+  launchParticles();
+
+  if (flippedCount === tarotMode) {
+    setTimeout(showTarotResult, 800);
+  }
+}
+
+function showTarotResult() {
+  const details = document.getElementById('tarotCardDetails');
+  const positions = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
+
+  details.innerHTML = drawnCards.map(({ card, isReversed }, i) => {
+    const meaning = isReversed ? card.reversed : card.upright;
+    const badge = isReversed
+      ? '<span class="tarot-detail-rev-badge badge-reversed">逆位置</span>'
+      : '<span class="tarot-detail-rev-badge badge-upright">正位置</span>';
+    const posLabel = positions[i] ? `${positions[i]} ／ ` : '';
+    return `
+      <div class="tarot-card-detail" style="animation-delay:${i*0.15}s">
+        <div class="tarot-detail-header">
+          <div class="tarot-detail-emoji">${card.emoji}</div>
+          <div class="tarot-detail-info">
+            <div class="tarot-detail-position">${posLabel}${card.num} — ${card.en}</div>
+            <div class="tarot-detail-name">${card.name}</div>
+            ${badge}
+          </div>
+        </div>
+        <div class="tarot-keywords">${card.keywords.map(k=>`<span class="tarot-kw">${k}</span>`).join('')}</div>
+        <p class="tarot-meaning">${meaning}</p>
+      </div>
+    `;
+  }).join('');
+
+  // 3枚引きの総合メッセージ
+  const overall = document.getElementById('tarotOverall');
+  if (tarotMode === 3) {
+    const idx = Math.floor(Math.random() * tarotOverallMessages3.length);
+    document.getElementById('tarotOverallText').textContent = tarotOverallMessages3[idx];
+    overall.style.display = 'block';
+  } else {
+    overall.style.display = 'none';
+  }
+
+  const result = document.getElementById('tarotResult');
+  result.style.display = 'block';
+  result.style.animation = 'none';
+  requestAnimationFrame(() => { result.style.animation = 'fadeInUp 0.6s ease'; });
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  document.getElementById('flipHint').style.display = 'none';
+  document.getElementById('tarotHint').textContent = 'カードが語りかけています';
+}
+
+function resetTarot() {
+  drawnCards = []; flippedCount = 0; tarotDeck = [];
+  buildCardSlots();
+  document.getElementById('tarotResult').style.display = 'none';
+  document.getElementById('tarotHint').textContent = 'カードをシャッフルして、引いてください';
+  document.getElementById('flipHint').style.display = 'none';
 }
 
 function launchParticles() {
