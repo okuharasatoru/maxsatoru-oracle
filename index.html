@@ -1079,6 +1079,97 @@
     box-shadow: 0 8px 25px rgba(107,47,160,0.6);
   }
 
+  /* ===== 1枚引き：散らばりカード ===== */
+  .scattered-area {
+    position: relative;
+    width: 100%; height: 230px;
+    margin: 12px 0 8px;
+  }
+  .scatter-item {
+    position: absolute;
+    width: 56px; height: 88px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #1a0a3e 0%, #0d0a2e 100%);
+    border: 1px solid rgba(212,175,55,0.35);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.17,0.67,0.35,1),
+                box-shadow 0.3s ease, opacity 0.3s ease, border-color 0.3s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    will-change: transform;
+  }
+  .scatter-item::before {
+    content: '✦'; font-size: 1rem; color: rgba(212,175,55,0.2);
+  }
+  .scatter-item::after {
+    content: ''; position: absolute; inset: 4px;
+    border: 1px solid rgba(212,175,55,0.08); border-radius: 6px;
+  }
+  .scatter-item:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 18px rgba(212,175,55,0.45), 0 6px 16px rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+  .scatter-item.faded  { opacity: 0.15; pointer-events: none; }
+  .scatter-item.chosen {
+    border-color: var(--gold);
+    box-shadow: 0 0 28px rgba(212,175,55,0.7);
+    z-index: 10;
+  }
+  .scatter-hint {
+    text-align: center; font-size: 0.72rem;
+    color: var(--gold); letter-spacing: 0.2em;
+    animation: pulse-text 1.5s ease-in-out infinite;
+    margin-bottom: 4px;
+  }
+
+  /* ===== 3枚引き：ディール ===== */
+  .deal-slots {
+    display: flex; gap: 14px; justify-content: center;
+    margin: 16px 0 8px; flex-wrap: nowrap;
+  }
+  .deal-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .deal-slot-label {
+    font-size: 0.68rem; color: var(--gold); letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .deal-card {
+    width: clamp(80px, 20vw, 108px);
+    height: clamp(126px, 32vw, 170px);
+    border-radius: 11px;
+    background: linear-gradient(135deg, #1a0a3e, #0a0e2e);
+    border: 1px solid rgba(212,175,55,0.4);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s, border-color 0.3s;
+    position: relative; overflow: hidden;
+    animation: deal-pulse 2.2s ease-in-out infinite;
+  }
+  .deal-card::after {
+    content: ''; position: absolute; inset: 5px;
+    border: 1px solid rgba(212,175,55,0.1); border-radius: 7px;
+  }
+  .deal-card:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4), 0 6px 20px rgba(0,0,0,0.5);
+    transform: translateY(-6px) scale(1.04);
+  }
+  .deal-card.revealed { pointer-events: none; border-color: rgba(212,175,55,0.6); }
+  .deal-card-symbol { font-size: 1.6rem; color: rgba(212,175,55,0.25); }
+  .deal-tap-hint {
+    font-size: 0.58rem; color: rgba(212,175,55,0.55);
+    letter-spacing: 0.12em; animation: pulse-text 1.5s ease-in-out infinite;
+  }
+  @keyframes deal-pulse {
+    0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 6px rgba(212,175,55,0.1); }
+    50%      { box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 16px rgba(212,175,55,0.3); }
+  }
+  .deal-card.revealed .deal-card-symbol { color: var(--gold-light); font-size: 1.8rem; }
+  .deal-card.revealed .deal-tap-hint { display: none; }
+  .deal-card-revname { font-size: 0.65rem; color: var(--gold-light); text-align: center; padding: 0 4px; }
+
   .retarot-btn {
     display: block; margin: 20px auto 0; padding: 12px 36px;
     background: transparent; border: 1px solid rgba(212,175,55,0.4);
@@ -1588,13 +1679,22 @@
       <button class="tarot-mode-btn" id="mode3btn" onclick="setTarotMode(3)">🃏🃏🃏 3枚引き（過去・現在・未来）</button>
     </div>
 
-    <!-- デッキ -->
+    <!-- デッキ＋カードエリア（1つのカードにまとめる） -->
     <div class="result-card" id="tarotDeckCard">
       <div class="tarot-deck-area">
         <p class="shuffle-phase-label" id="shufflePhaseLabel">カードに手を触れて、心を込めてシャッフルを</p>
         <div class="shuffle-deck-visual" id="shuffleDeckVisual"></div>
         <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleDeck()">✦ カードをシャッフル ✦</button>
-        <div class="card-slots" id="cardSlots" style="margin-top:20px;"></div>
+        <!-- 1枚引き：散らばりエリア -->
+        <div id="scatterArea" style="display:none;">
+          <p class="scatter-hint">✦ 直感で1枚選んでください ✦</p>
+          <div class="scattered-area" id="scatteredCards"></div>
+        </div>
+        <!-- 3枚引き：ディールエリア -->
+        <div id="dealArea" style="display:none;">
+          <p class="scatter-hint" id="dealHint">✦ カードをタップしてめくってください ✦</p>
+          <div class="deal-slots" id="dealSlots"></div>
+        </div>
       </div>
     </div>
 
@@ -3025,9 +3125,17 @@ let drawnCards = [];
 let revealIdx = 0;
 let isShuffling = false;
 
+// 散らばりカードの配置（13ポジション）
+const SCATTER_POS = [
+  {l:2,  t:4,  r:-32}, {l:14, t:0,  r:-20}, {l:27, t:6,  r:-9},
+  {l:40, t:1,  r:2},   {l:53, t:6,  r:13},  {l:66, t:0,  r:24},
+  {l:78, t:5,  r:35},  {l:6,  t:52, r:-28}, {l:20, t:48, r:-14},
+  {l:34, t:54, r:1},   {l:48, t:50, r:14},  {l:62, t:54, r:27},
+  {l:76, t:50, r:38}
+];
+
 function initTarotPage() {
   buildVisualDeck();
-  buildCardSlots();
 }
 
 function setTarotMode(n) {
@@ -3111,60 +3219,105 @@ async function shuffleDeck() {
   tarotDeck = [...tarotCards].sort(() => Math.random() - 0.5);
   drawnCards = [];
   revealIdx = 0;
+  document.getElementById('tarotResult').style.display = 'none';
 
-  // スロットにカードを配る
-  buildCardSlots();
-  for (let i = 0; i < tarotMode; i++) {
-    const isReversed = Math.random() > 0.5;
-    drawnCards.push({ card: tarotDeck[i], isReversed });
-    await wait(200);
+  // シャッフルボタンを隠す
+  btn.style.display = 'none';
+  document.getElementById('shuffleDeckVisual').style.display = 'none';
+
+  if (tarotMode === 1) {
+    await showScattered();
+  } else {
+    await showDealt3();
   }
 
-  document.getElementById('tarotResult').style.display = 'none';
   isShuffling = false;
-  btn.disabled = false;
-  btn.style.opacity = '1';
+}
+
+// ===== 1枚引き：カードを散らばらせる =====
+async function showScattered() {
+  document.getElementById('scatterArea').style.display = 'block';
+  const container = document.getElementById('scatteredCards');
+  container.innerHTML = '';
+
+  const count = SCATTER_POS.length;
+  for (let i = 0; i < count; i++) {
+    const pos = SCATTER_POS[i];
+    const el = document.createElement('div');
+    el.className = 'scatter-item';
+    el.dataset.idx = i;
+
+    // 中心からスタート
+    el.style.cssText = `
+      left: 50%; top: 45%;
+      transform: translate(-50%,-50%) rotate(0deg) scale(0.3);
+      opacity: 0; transition: none;
+    `;
+    container.appendChild(el);
+
+    // 少し遅らせてから飛ばす
+    await wait(30);
+    el.style.transition = `all 0.55s cubic-bezier(0.17,0.67,0.35,1) ${i * 0.04}s`;
+    el.style.left   = `${pos.l}%`;
+    el.style.top    = `${pos.t}%`;
+    el.style.transform = `rotate(${pos.r}deg) scale(1)`;
+    el.style.opacity = '1';
+
+    el.onclick = () => selectScattered(i);
+  }
+}
+
+function selectScattered(idx) {
+  const isReversed = Math.random() > 0.5;
+  drawnCards = [{ card: tarotDeck[idx], isReversed }];
+  revealIdx = 0;
+
+  // 選んだカード以外をフェードアウト
+  document.querySelectorAll('.scatter-item').forEach((el, i) => {
+    if (i !== idx) el.classList.add('faded');
+    else el.classList.add('chosen');
+  });
+
+  setTimeout(() => openRevealOverlay(0), 350);
+}
+
+// ===== 3枚引き：カードをディール =====
+async function showDealt3() {
+  document.getElementById('dealArea').style.display = 'block';
+  const slots = document.getElementById('dealSlots');
+  slots.innerHTML = '';
+
+  const labels = ['過去', '現在', '未来'];
+  for (let i = 0; i < 3; i++) {
+    const isReversed = Math.random() > 0.5;
+    drawnCards.push({ card: tarotDeck[i], isReversed });
+
+    const slot = document.createElement('div');
+    slot.className = 'deal-slot';
+    slot.innerHTML = `<div class="deal-slot-label">${labels[i]}</div>`;
+
+    const card = document.createElement('div');
+    card.className = 'deal-card';
+    card.id = `dcard-${i}`;
+    card.innerHTML = `<div class="deal-card-symbol">✦</div><div class="deal-tap-hint">タップ</div>`;
+
+    // ディールアニメーション：中心から飛んでくる
+    card.style.cssText = 'opacity:0; transform: scale(0.4) translateY(-30px); transition:none;';
+    slot.appendChild(card);
+    slots.appendChild(slot);
+
+    await wait(50);
+    card.style.transition = `all 0.5s cubic-bezier(0.17,0.67,0.35,1) ${i * 0.18}s`;
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1) translateY(0)';
+
+    card.onclick = () => openRevealOverlay(i);
+  }
 }
 
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ===== カードスロット =====
-function buildCardSlots() {
-  const slots = document.getElementById('cardSlots');
-  slots.innerHTML = '';
-  const labels = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
-  for (let i = 0; i < tarotMode; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'card-slot';
-    if (labels[i]) {
-      const lbl = document.createElement('div');
-      lbl.className = 'card-slot-label';
-      lbl.textContent = labels[i];
-      slot.appendChild(lbl);
-    }
-    // 裏向きカード（小さいスロット用）
-    const card = document.createElement('div');
-    card.className = 'tarot-card dealing';
-    card.style.animationDelay = `${i * 0.15}s`;
-    card.id = `tcard-${i}`;
-    card.innerHTML = `
-      <div class="tarot-card-inner">
-        <div class="tarot-card-back"><div class="card-back-pattern"></div></div>
-        <div class="tarot-card-front"></div>
-      </div>`;
-    card.onclick = () => openRevealOverlay(i);
-    slot.appendChild(card);
-
-    // タップ促進テキスト
-    const hint = document.createElement('div');
-    hint.id = `slot-hint-${i}`;
-    hint.style.cssText = 'font-size:0.6rem;color:rgba(212,175,55,0.6);letter-spacing:0.1em;margin-top:4px;animation:pulse-text 1.5s ease-in-out infinite;';
-    hint.textContent = 'タップ';
-    slot.appendChild(hint);
-
-    slots.appendChild(slot);
-  }
-}
+// buildCardSlots は廃止（scatter/deal方式に統一）
 
 // ===== オーバーレイでカードを開く =====
 function openRevealOverlay(idx) {
@@ -3238,20 +3391,21 @@ function flipBigCard() {
 }
 
 function confirmReveal() {
-  // スロットのカードを表向きにする
-  const el = document.getElementById(`tcard-${revealIdx}`);
   const { card, isReversed } = drawnCards[revealIdx];
-  el.dataset.revealed = '1';
-  el.querySelector('.tarot-card-front').innerHTML = `
-    <div class="tarot-card-num">${card.num}</div>
-    <div class="tarot-card-emoji">${card.emoji}</div>
-    <div class="tarot-card-name">${card.name}</div>
-    ${isReversed ? '<div class="tarot-card-rev">逆</div>' : ''}
-  `;
-  el.classList.add(isReversed ? 'reversed' : 'flipped');
-  el.onclick = null;
-  const hint = document.getElementById(`slot-hint-${revealIdx}`);
-  if (hint) hint.style.display = 'none';
+
+  // 3枚引き：ディールカードを表向き表示に更新
+  if (tarotMode === 3) {
+    const dc = document.getElementById(`dcard-${revealIdx}`);
+    if (dc) {
+      dc.classList.add('revealed');
+      dc.onclick = null;
+      dc.innerHTML = `
+        <div class="deal-card-symbol">${card.emoji}</div>
+        <div class="deal-card-revname">${card.name}</div>
+      `;
+    }
+  }
+  // 1枚引き：散らばりカードは選択済みのまま
 
   // オーバーレイを閉じる
   document.getElementById('cardRevealOverlay').style.display = 'none';
@@ -3308,12 +3462,18 @@ function resetTarot() {
   tarotDeck = []; drawnCards = []; revealIdx = 0; isShuffling = false;
   document.getElementById('cardRevealOverlay').style.display = 'none';
   document.body.style.overflow = '';
-  buildVisualDeck();
-  buildCardSlots();
+  // エリアをリセット
+  document.getElementById('scatterArea').style.display = 'none';
+  document.getElementById('dealArea').style.display = 'none';
+  document.getElementById('scatteredCards').innerHTML = '';
+  document.getElementById('dealSlots').innerHTML = '';
   document.getElementById('tarotResult').style.display = 'none';
+  // デッキを再表示
+  buildVisualDeck();
+  document.getElementById('shuffleDeckVisual').style.display = '';
   document.getElementById('shufflePhaseLabel').textContent = 'カードに手を触れて、心を込めてシャッフルを';
   const btn = document.getElementById('shuffleBtn');
-  btn.disabled = false; btn.style.opacity = '1';
+  btn.style.display = ''; btn.disabled = false; btn.style.opacity = '1';
 }
 
 function launchParticles() {
