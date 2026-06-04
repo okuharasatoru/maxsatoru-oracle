@@ -310,6 +310,67 @@ select option{background:#1a0840;color:#ede9fe;}
 .foot{text-align:center;font-size:11px;color:var(--text3);padding:16px 0 6px;letter-spacing:.1em;}
 
 @keyframes fadeInUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+/* ===== レビューウィジェット ===== */
+.review-widget{
+  background:linear-gradient(160deg,rgba(24,10,62,.95),rgba(10,4,30,.98));
+  border:1px solid var(--border-gold);border-radius:18px;
+  padding:20px;margin-top:14px;text-align:center;
+  animation:fadeInUp .5s ease;
+}
+.review-widget-title{
+  font-size:14px;font-weight:700;color:var(--gold-ll);
+  letter-spacing:.08em;margin-bottom:14px;
+}
+.review-star-row{display:flex;justify-content:center;gap:8px;margin-bottom:14px;}
+.review-star-row button{
+  font-size:32px;background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.2);transition:all .2s;padding:4px;
+  line-height:1;min-height:44px;min-width:44px;
+}
+.review-star-row button.lit{color:var(--gold-l);}
+.review-star-row button:hover{transform:scale(1.2);}
+.review-comment{
+  width:100%;min-height:72px;resize:none;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);font-size:14px;
+  font-family:inherit;padding:10px 12px;margin-bottom:12px;
+  outline:none;
+}
+.review-comment:focus{border-color:var(--gold);}
+.review-comment::placeholder{color:var(--text3);}
+.review-actions{display:flex;gap:10px;}
+.review-actions .btn{flex:1;min-height:46px;font-size:14px;}
+.review-thanks{
+  padding:16px;text-align:center;font-size:14px;
+  color:var(--gold-ll);animation:fadeInUp .4s ease;
+}
+
+/* ===== 管理者レビューページ ===== */
+.admin-review-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+}
+.admin-review-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:var(--text3);margin-bottom:6px;
+}
+.admin-review-stars{font-size:16px;color:var(--gold-l);}
+.admin-review-comment{font-size:14px;color:var(--text);line-height:1.6;}
+.admin-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;
+}
+.admin-stat{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;padding:12px;text-align:center;
+}
+.admin-stat-num{font-size:22px;font-weight:700;color:var(--gold-l);}
+.admin-stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
+.admin-type-badge{
+  display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;
+  background:rgba(124,58,237,.25);border:1px solid var(--border);
+  color:var(--purple-l);margin-right:6px;
+}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 @keyframes spinSlow{from{transform:rotate(0);}to{transform:rotate(360deg);}}
@@ -334,6 +395,8 @@ select option{background:#1a0840;color:#ede9fe;}
   <section class="page" id="compatPage"></section>
   <section class="page" id="rankingPage"></section>
   <section class="page" id="calendarPage"></section>
+  <!-- 管理者専用ページ（URL: ?admin=maxsatoru でアクセス） -->
+  <section class="page" id="adminPage"></section>
 </main>
 
 <nav>
@@ -678,6 +741,8 @@ function runOracle(){
       res.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
       document.getElementById('orTabBody').textContent=tabBody[t.dataset.t];
     }));
+    // レビューウィジェット
+    showReviewWidget('oracle','oraclePage');
   },2500);
 }
 
@@ -725,6 +790,7 @@ function showDailyFortune(z,idx){
     '<div style="margin-top:12px;font-size:13px;color:var(--gold-ll);">💡 今日のアドバイス：'+adv+'</div>'+
   '</div>';
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  showReviewWidget('daily','dailyPage');
 }
 
 /* ============ TAROT ============ */
@@ -840,6 +906,7 @@ function showTarotResult(){
   html+='</div>';
   res.innerHTML=html;
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  showReviewWidget('tarot','tarotPage');
 }
 
 /* ============ COMPAT ============ */
@@ -884,6 +951,7 @@ function calcCompat(){
     '<button class="btn pink" style="margin-top:14px;" onclick="shareCompat('+total+')">結果をシェアする</button>'+
   '</div>';
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  showReviewWidget('compat','compatPage');
 }
 function shareCompat(score){
   const text='MAXSATORU ORACLEで相性占い！結果は'+score+'%でした✨';
@@ -986,9 +1054,178 @@ function showCalDetail(d,m,y,level){
   loop();
 })();
 
+/* ============ レビューシステム ============ */
+let _reviewStars = 0;
+let _reviewType  = '';
+
+// レビューを保存
+function saveReview(stars, comment, type) {
+  const reviews = JSON.parse(localStorage.getItem('msReviews') || '[]');
+  reviews.unshift({
+    id: Date.now(),
+    stars,
+    comment: comment.trim(),
+    type,
+    date: new Date().toLocaleDateString('ja-JP')
+  });
+  // 最大200件まで
+  localStorage.setItem('msReviews', JSON.stringify(reviews.slice(0, 200)));
+}
+
+// レビューウィジェットを表示
+function showReviewWidget(type, containerId) {
+  _reviewType  = type;
+  _reviewStars = 0;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const typeLabels = {
+    oracle: '命運占い', daily: '今日の運勢',
+    tarot:  'タロット占い', compat: '相性占い'
+  };
+
+  const div = document.createElement('div');
+  div.className = 'review-widget';
+  div.id = 'reviewWidget';
+  div.innerHTML =
+    '<div class="review-widget-title">✦ ' + (typeLabels[type] || '占い') + ' はいかがでしたか？ ✦</div>' +
+    '<div class="review-star-row" id="reviewStars">' +
+      [1,2,3,4,5].map(n =>
+        '<button onclick="selectStar('+n+')" id="star'+n+'">★</button>'
+      ).join('') +
+    '</div>' +
+    '<textarea class="review-comment" id="reviewComment" placeholder="感想を書いてください（任意・100文字以内）" maxlength="100"></textarea>' +
+    '<div class="review-actions">' +
+      '<button class="btn gold" onclick="submitReview()">✦ 送信する ✦</button>' +
+      '<button class="btn ghost" onclick="skipReview()">スキップ</button>' +
+    '</div>';
+  container.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function selectStar(n) {
+  _reviewStars = n;
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('star' + i);
+    if (el) el.classList.toggle('lit', i <= n);
+  }
+}
+
+function submitReview() {
+  if (_reviewStars === 0) {
+    // 星を選んでもらう
+    document.getElementById('reviewStars').style.animation = 'none';
+    document.getElementById('reviewStars').style.outline = '2px solid var(--gold)';
+    setTimeout(() => {
+      const el = document.getElementById('reviewStars');
+      if (el) el.style.outline = '';
+    }, 600);
+    return;
+  }
+  const comment = (document.getElementById('reviewComment')?.value || '').trim();
+  saveReview(_reviewStars, comment, _reviewType);
+
+  const widget = document.getElementById('reviewWidget');
+  if (widget) {
+    widget.innerHTML =
+      '<div class="review-thanks">' +
+        '★'.repeat(_reviewStars) + '<br><br>' +
+        'レビューありがとうございます！💫<br>' +
+        '<span style="font-size:12px;color:var(--text3);">あなたの声が占いを育てます</span>' +
+      '</div>';
+  }
+}
+
+function skipReview() {
+  const widget = document.getElementById('reviewWidget');
+  if (widget) widget.remove();
+}
+
+/* ============ 管理者ページ ============ */
+function initAdminPage() {
+  const reviews = JSON.parse(localStorage.getItem('msReviews') || '[]');
+  const page = document.getElementById('adminPage');
+
+  if (reviews.length === 0) {
+    page.innerHTML =
+      '<h1 class="page-title cinzel">👑 管理者ページ</h1>' +
+      '<div class="card"><div style="text-align:center;color:var(--text3);padding:20px;">まだレビューはありません</div></div>';
+    return;
+  }
+
+  const avg = (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1);
+  const typeMap = { oracle:'命運', daily:'今日', tarot:'タロット', compat:'相性' };
+  const typeCounts = reviews.reduce((acc, r) => {
+    acc[r.type] = (acc[r.type] || 0) + 1; return acc;
+  }, {});
+
+  let html =
+    '<h1 class="page-title cinzel">👑 管理者ページ</h1>' +
+    '<div class="admin-stats">' +
+      '<div class="admin-stat"><div class="admin-stat-num">' + reviews.length + '</div><div class="admin-stat-lbl">総レビュー数</div></div>' +
+      '<div class="admin-stat"><div class="admin-stat-num">★' + avg + '</div><div class="admin-stat-lbl">平均評価</div></div>' +
+      '<div class="admin-stat"><div class="admin-stat-num">' + reviews.filter(r => r.stars >= 4).length + '</div><div class="admin-stat-lbl">高評価（4★以上）</div></div>' +
+    '</div>';
+
+  // 星別分布
+  html += '<div class="card" style="margin-bottom:14px;">';
+  html += '<div class="sec-title">星別分布</div>';
+  for (let s = 5; s >= 1; s--) {
+    const cnt = reviews.filter(r => r.stars === s).length;
+    const pct = reviews.length ? Math.round(cnt / reviews.length * 100) : 0;
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+      '<div style="width:24px;font-size:12px;color:var(--gold-l);">' + s + '★</div>' +
+      '<div class="meter" style="flex:1;"><i style="width:' + pct + '%"></i></div>' +
+      '<div style="width:36px;font-size:12px;color:var(--text3);text-align:right;">' + cnt + '件</div>' +
+    '</div>';
+  }
+  html += '</div>';
+
+  // コメントありのみ抽出
+  const commented = reviews.filter(r => r.comment);
+  if (commented.length > 0) {
+    html += '<div class="sec-title" style="margin-bottom:10px;">💬 コメントあり (' + commented.length + '件)</div>';
+    commented.forEach(r => {
+      html += '<div class="admin-review-card">' +
+        '<div class="admin-review-meta">' +
+          '<span><span class="admin-type-badge">' + (typeMap[r.type] || r.type) + '</span>' + r.date + '</span>' +
+          '<span class="admin-review-stars">' + '★'.repeat(r.stars) + '</span>' +
+        '</div>' +
+        '<div class="admin-review-comment">"' + r.comment + '"</div>' +
+      '</div>';
+    });
+  }
+
+  // 全レビュー
+  html += '<div class="sec-title" style="margin-top:16px;margin-bottom:10px;">📋 全レビュー (' + reviews.length + '件)</div>';
+  reviews.forEach(r => {
+    html += '<div class="admin-review-card">' +
+      '<div class="admin-review-meta">' +
+        '<span><span class="admin-type-badge">' + (typeMap[r.type] || r.type) + '</span>' + r.date + '</span>' +
+        '<span class="admin-review-stars">' + '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + '</span>' +
+      '</div>' +
+      (r.comment ? '<div class="admin-review-comment">"' + r.comment + '"</div>' : '<div style="font-size:12px;color:var(--text3);">（コメントなし）</div>') +
+    '</div>';
+  });
+
+  // データ削除ボタン
+  html += '<button class="btn ghost" style="margin-top:10px;" onclick="if(confirm(\'全レビューを削除しますか？\')){localStorage.removeItem(\'msReviews\');initAdminPage();}">🗑 全レビューを削除</button>';
+  page.innerHTML = html;
+}
+
 /* ============ INIT ============ */
 checkLoginStreak();
-initHome();
+
+// 管理者URLチェック
+if (location.search === '?admin=maxsatoru') {
+  // ナビを非表示にして管理者ページへ
+  document.querySelector('nav').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('adminPage').classList.add('active');
+  initAdminPage();
+} else {
+  initHome();
+}
 </script>
 </body>
 </html>
