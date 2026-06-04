@@ -892,6 +892,193 @@
     color: var(--white); font-weight: 300;
   }
 
+  /* ===== シャッフルデッキ ===== */
+  .shuffle-deck-visual {
+    position: relative; width: 100px; height: 150px;
+    margin: 0 auto 24px; cursor: pointer;
+  }
+  .sdeck-card {
+    position: absolute; width: 72px; height: 112px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1a0a3e, #0a0e2e);
+    border: 1px solid rgba(212,175,55,0.5);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.45s cubic-bezier(0.4,0,0.2,1),
+                box-shadow 0.45s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: rgba(212,175,55,0.25);
+    overflow: hidden;
+  }
+  .sdeck-card::after {
+    content: '✦'; font-size: 1.2rem;
+    color: rgba(212,175,55,0.3);
+    animation: spin-slow 6s linear infinite;
+  }
+  .sdeck-card::before {
+    content: '';position:absolute;inset:4px;
+    border:1px solid rgba(212,175,55,0.1);border-radius:5px;
+  }
+  /* フェーズ1: 左右に分割 */
+  .sdeck-card.phase-left  { transform: translate(calc(-50% - 55px), -50%) rotate(-12deg); box-shadow: -4px 4px 16px rgba(0,0,0,0.5); }
+  .sdeck-card.phase-right { transform: translate(calc(-50% + 55px), -50%) rotate(12deg);  box-shadow:  4px 4px 16px rgba(0,0,0,0.5); }
+  /* フェーズ2: リフル（各カードをずらす） */
+  .sdeck-card.riffle-0  { transform: translate(-50%, calc(-50% - 48px)) rotate(-2deg); }
+  .sdeck-card.riffle-1  { transform: translate(-50%, calc(-50% - 36px)) rotate(1deg);  }
+  .sdeck-card.riffle-2  { transform: translate(-50%, calc(-50% - 24px)) rotate(-1deg); }
+  .sdeck-card.riffle-3  { transform: translate(-50%, calc(-50% - 12px)) rotate(2deg);  }
+  .sdeck-card.riffle-4  { transform: translate(-50%, calc(-50%))         rotate(0deg);  }
+  .sdeck-card.riffle-5  { transform: translate(-50%, calc(-50% + 12px)) rotate(-2deg); }
+  .sdeck-card.riffle-6  { transform: translate(-50%, calc(-50% + 24px)) rotate(1deg);  }
+  .sdeck-card.riffle-7  { transform: translate(-50%, calc(-50% + 36px)) rotate(-1deg); }
+  /* フェーズ3: ファン */
+  .sdeck-card.fan-0 { transform: translate(calc(-50% - 90px), calc(-50% + 20px)) rotate(-40deg); }
+  .sdeck-card.fan-1 { transform: translate(calc(-50% - 65px), calc(-50% - 10px)) rotate(-28deg); }
+  .sdeck-card.fan-2 { transform: translate(calc(-50% - 38px), calc(-50% - 30px)) rotate(-16deg); }
+  .sdeck-card.fan-3 { transform: translate(calc(-50% - 10px), calc(-50% - 40px)) rotate(-5deg);  }
+  .sdeck-card.fan-4 { transform: translate(calc(-50% + 18px), calc(-50% - 40px)) rotate(6deg);   }
+  .sdeck-card.fan-5 { transform: translate(calc(-50% + 44px), calc(-50% - 28px)) rotate(18deg);  }
+  .sdeck-card.fan-6 { transform: translate(calc(-50% + 66px), calc(-50% - 6px))  rotate(30deg);  }
+  .sdeck-card.fan-7 { transform: translate(calc(-50% + 84px), calc(-50% + 22px)) rotate(42deg);  }
+  /* スタック（枚数オフセット） */
+  .sdeck-card.stack-0 { transform: translate(calc(-50% - 3px), calc(-50% - 3px)) rotate(-1deg); }
+  .sdeck-card.stack-1 { transform: translate(calc(-50% - 2px), calc(-50% - 2px)) rotate(-0.5deg); }
+  .sdeck-card.stack-2 { transform: translate(calc(-50% - 1px), calc(-50% - 1px)) rotate(0deg); }
+  .sdeck-card.stack-3 { transform: translate(-50%, -50%) rotate(0.5deg); }
+  .sdeck-card.stack-4 { transform: translate(-50%, -50%) rotate(0deg); }
+  .sdeck-card.stack-5 { transform: translate(calc(-50% + 1px), calc(-50% + 1px)) rotate(-0.5deg); }
+  .sdeck-card.stack-6 { transform: translate(calc(-50% + 2px), calc(-50% + 2px)) rotate(0.3deg); }
+  .sdeck-card.stack-7 { transform: translate(calc(-50% + 3px), calc(-50% + 3px)) rotate(-0.3deg); }
+  .sdeck-card.ready {
+    box-shadow: 0 0 15px rgba(212,175,55,0.3);
+    animation: deck-pulse 2s ease-in-out infinite;
+  }
+  @keyframes deck-pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(212,175,55,0.2); }
+    50%      { box-shadow: 0 0 22px rgba(212,175,55,0.5); }
+  }
+
+  .shuffle-phase-label {
+    font-size: 0.72rem; color: var(--gold);
+    letter-spacing: 0.25em; text-align: center;
+    min-height: 1.2em; margin-bottom: 4px;
+    animation: pulse-text 1s ease-in-out infinite;
+  }
+
+  /* ===== カードめくりオーバーレイ ===== */
+  .card-reveal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5,2,20,0.92);
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 20px 16px 40px;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  .reveal-position-badge {
+    font-size: 0.72rem; letter-spacing: 0.3em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 14px; margin-top: 10px;
+  }
+  .reveal-progress {
+    font-size: 0.65rem; color: var(--silver);
+    letter-spacing: 0.2em; margin-bottom: 16px;
+  }
+
+  /* 大きいカード */
+  .tarot-card-big {
+    width: 150px; height: 240px;
+    perspective: 1000px;
+    flex-shrink: 0; margin-bottom: 24px;
+    cursor: pointer;
+  }
+  .tarot-card-big-inner {
+    width: 100%; height: 100%;
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 14px;
+  }
+  .tarot-card-big-inner.flipped      { transform: rotateY(180deg); }
+  .tarot-card-big-inner.flipped.rev  { transform: rotateY(180deg) rotate(180deg); }
+
+  .tarot-card-big-back,
+  .tarot-card-big-front {
+    position: absolute; inset: 0; border-radius: 14px;
+    backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+  }
+  .tarot-card-big-back {
+    background: linear-gradient(135deg, #2a0a5e, #0a0e2e);
+    border: 2px solid rgba(212,175,55,0.5);
+    font-size: 2.5rem; color: rgba(212,175,55,0.3);
+    box-shadow: 0 0 30px rgba(107,47,160,0.5);
+    cursor: pointer;
+    animation: deck-pulse 2s ease-in-out infinite;
+  }
+  .tarot-card-big-back::after {
+    content: ''; position: absolute; inset: 8px;
+    border: 1px solid rgba(212,175,55,0.2); border-radius: 8px;
+  }
+  .tarot-card-big-back .tap-hint {
+    position: absolute; bottom: 12px;
+    font-size: 0.6rem; color: rgba(212,175,55,0.6);
+    letter-spacing: 0.15em; animation: pulse-text 1.5s ease-in-out infinite;
+  }
+  .tarot-card-big-front {
+    background: linear-gradient(160deg, #1a0a3e 0%, #2a0a5e 50%, #0a0e2e 100%);
+    border: 2px solid rgba(212,175,55,0.6);
+    transform: rotateY(180deg);
+    padding: 12px 8px;
+    box-shadow: 0 0 40px rgba(212,175,55,0.3);
+  }
+  .tarot-card-big-front::after {
+    content: ''; position: absolute; inset: 6px;
+    border: 1px solid rgba(212,175,55,0.2); border-radius: 9px;
+    pointer-events: none;
+  }
+  .big-card-emoji  { font-size: 3.5rem; line-height: 1; }
+  .big-card-num    { font-family:'Cinzel',serif; font-size:0.65rem; color:var(--gold); letter-spacing:0.2em; }
+  .big-card-name   { font-size: 0.9rem; color: var(--gold-light); text-align: center; font-weight: 400; }
+  .big-card-rev    { font-size: 0.65rem; color: #ff9090; letter-spacing: 0.1em; }
+
+  /* 詳細パネル（フリップ後に表示） */
+  .reveal-detail-panel {
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.5s cubic-bezier(0.17,0.67,0.35,1) both;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform: translateY(30px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .reveal-detail-card {
+    background: linear-gradient(135deg, rgba(26,10,62,0.95), rgba(10,14,46,0.98));
+    border: 1px solid rgba(212,175,55,0.3); border-radius: 18px;
+    padding: 20px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .reveal-detail-card::after {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .reveal-confirm-btn {
+    width: 100%; max-width: 480px;
+    padding: 15px; margin-top: 4px;
+    background: linear-gradient(135deg, #4a1a8a, var(--violet));
+    border: 1px solid var(--gold); border-radius: 12px;
+    color: var(--gold-light); font-family: 'Noto Serif JP', serif;
+    font-size: 0.95rem; letter-spacing: 0.15em; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .reveal-confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(107,47,160,0.6);
+  }
+
   .retarot-btn {
     display: block; margin: 20px auto 0; padding: 12px 36px;
     background: transparent; border: 1px solid rgba(212,175,55,0.4);
@@ -1404,10 +1591,40 @@
     <!-- デッキ -->
     <div class="result-card" id="tarotDeckCard">
       <div class="tarot-deck-area">
-        <p class="tarot-deck-hint" id="tarotHint">カードをシャッフルして、引いてください</p>
+        <p class="shuffle-phase-label" id="shufflePhaseLabel">カードに手を触れて、心を込めてシャッフルを</p>
+        <div class="shuffle-deck-visual" id="shuffleDeckVisual"></div>
         <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleDeck()">✦ カードをシャッフル ✦</button>
-        <div class="card-slots" id="cardSlots"></div>
-        <p style="font-size:0.72rem;color:rgba(192,192,192,0.5);margin-top:12px;letter-spacing:0.1em;" id="flipHint" style="display:none">裏向きのカードをタップして引いてください</p>
+        <div class="card-slots" id="cardSlots" style="margin-top:20px;"></div>
+      </div>
+    </div>
+
+    <!-- カードめくりオーバーレイ -->
+    <div class="card-reveal-overlay" id="cardRevealOverlay" style="display:none;">
+      <div class="reveal-progress" id="revealProgress"></div>
+      <div class="reveal-position-badge" id="revealPositionBadge"></div>
+      <div class="tarot-card-big" id="bigCard" onclick="flipBigCard()">
+        <div class="tarot-card-big-inner" id="bigCardInner">
+          <div class="tarot-card-big-back">
+            <span>✦</span>
+            <span class="tap-hint">タップしてめくる</span>
+          </div>
+          <div class="tarot-card-big-front" id="bigCardFront"></div>
+        </div>
+      </div>
+      <div class="reveal-detail-panel" id="revealDetailPanel" style="display:none;">
+        <div class="reveal-detail-card">
+          <div class="tarot-detail-header">
+            <div class="tarot-detail-emoji" id="revealEmoji"></div>
+            <div class="tarot-detail-info">
+              <div class="tarot-detail-position" id="revealCardNum"></div>
+              <div class="tarot-detail-name" id="revealCardName"></div>
+              <div id="revealRevBadge"></div>
+            </div>
+          </div>
+          <div class="tarot-keywords" id="revealKeywords"></div>
+          <p class="tarot-meaning" id="revealMeaning"></p>
+        </div>
+        <button class="reveal-confirm-btn" id="revealConfirmBtn" onclick="confirmReveal()"></button>
       </div>
     </div>
 
@@ -2801,15 +3018,16 @@ const tarotOverallMessages3 = [
   '過去の苦労と現在の課題は、より輝かしい未来への布石です。三枚のカードが示す旅路を信頼し、一歩一歩丁寧に歩んでいきましょう。'
 ];
 
+// ===== タロット状態 =====
 let tarotMode = 1;
 let tarotDeck = [];
 let drawnCards = [];
-let flippedCount = 0;
+let revealIdx = 0;
+let isShuffling = false;
 
 function initTarotPage() {
-  if (document.getElementById('cardSlots').children.length === 0) {
-    buildCardSlots();
-  }
+  buildVisualDeck();
+  buildCardSlots();
 }
 
 function setTarotMode(n) {
@@ -2819,6 +3037,98 @@ function setTarotMode(n) {
   resetTarot();
 }
 
+// ===== ビジュアルデッキ（8枚のカード背面）=====
+function buildVisualDeck() {
+  const vis = document.getElementById('shuffleDeckVisual');
+  vis.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const c = document.createElement('div');
+    c.className = `sdeck-card stack-${i}`;
+    c.id = `sdeck-${i}`;
+    vis.appendChild(c);
+  }
+}
+
+function setDeckClass(phase) {
+  for (let i = 0; i < 8; i++) {
+    const el = document.getElementById(`sdeck-${i}`);
+    if (!el) continue;
+    el.className = `sdeck-card ${phase}-${i}`;
+  }
+}
+
+// ===== シャッフルアニメーション =====
+async function shuffleDeck() {
+  if (isShuffling) return;
+  isShuffling = true;
+
+  const btn = document.getElementById('shuffleBtn');
+  const label = document.getElementById('shufflePhaseLabel');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+
+  // フェーズ1: 左右に分割
+  label.textContent = '✦ カードを2つに分けて…';
+  for (let i = 0; i < 8; i++) {
+    document.getElementById(`sdeck-${i}`).className =
+      `sdeck-card ${i < 4 ? 'phase-left' : 'phase-right'}`;
+  }
+  await wait(500);
+
+  // フェーズ2: リフル（3回繰り返す）
+  for (let r = 0; r < 3; r++) {
+    label.textContent = ['✦ リフルシャッフル中…', '✦ もう一度シャッフル…', '✦ 仕上げのシャッフル…'][r];
+    setDeckClass('riffle');
+    await wait(400);
+    // 一瞬スタックに戻す
+    setDeckClass('stack');
+    await wait(300);
+    if (r < 2) {
+      // 左右分割に戻す
+      for (let i = 0; i < 8; i++) {
+        document.getElementById(`sdeck-${i}`).className =
+          `sdeck-card ${i < 4 ? 'phase-left' : 'phase-right'}`;
+      }
+      await wait(350);
+    }
+  }
+
+  // フェーズ3: ファン
+  label.textContent = '✦ カードをファン状に広げて…';
+  setDeckClass('fan');
+  await wait(600);
+
+  // フェーズ4: スタックに戻す
+  label.textContent = '✦ シャッフル完了。カードを引いてください';
+  setDeckClass('stack');
+  for (let i = 0; i < 8; i++) {
+    const el = document.getElementById(`sdeck-${i}`);
+    if (el) el.classList.add('ready');
+  }
+  await wait(400);
+
+  // デッキをシャッフル
+  tarotDeck = [...tarotCards].sort(() => Math.random() - 0.5);
+  drawnCards = [];
+  revealIdx = 0;
+
+  // スロットにカードを配る
+  buildCardSlots();
+  for (let i = 0; i < tarotMode; i++) {
+    const isReversed = Math.random() > 0.5;
+    drawnCards.push({ card: tarotDeck[i], isReversed });
+    await wait(200);
+  }
+
+  document.getElementById('tarotResult').style.display = 'none';
+  isShuffling = false;
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ===== カードスロット =====
 function buildCardSlots() {
   const slots = document.getElementById('cardSlots');
   slots.innerHTML = '';
@@ -2832,66 +3142,124 @@ function buildCardSlots() {
       lbl.textContent = labels[i];
       slot.appendChild(lbl);
     }
+    // 裏向きカード（小さいスロット用）
     const card = document.createElement('div');
-    card.className = 'tarot-card';
+    card.className = 'tarot-card dealing';
+    card.style.animationDelay = `${i * 0.15}s`;
     card.id = `tcard-${i}`;
-    card.innerHTML = `<div class="tarot-card-inner"><div class="tarot-card-back"><div class="card-back-pattern"></div></div><div class="tarot-card-front"></div></div>`;
+    card.innerHTML = `
+      <div class="tarot-card-inner">
+        <div class="tarot-card-back"><div class="card-back-pattern"></div></div>
+        <div class="tarot-card-front"></div>
+      </div>`;
+    card.onclick = () => openRevealOverlay(i);
     slot.appendChild(card);
+
+    // タップ促進テキスト
+    const hint = document.createElement('div');
+    hint.id = `slot-hint-${i}`;
+    hint.style.cssText = 'font-size:0.6rem;color:rgba(212,175,55,0.6);letter-spacing:0.1em;margin-top:4px;animation:pulse-text 1.5s ease-in-out infinite;';
+    hint.textContent = 'タップ';
+    slot.appendChild(hint);
+
     slots.appendChild(slot);
   }
 }
 
-function shuffleDeck() {
-  const btn = document.getElementById('shuffleBtn');
-  btn.classList.add('shuffling');
-  setTimeout(() => btn.classList.remove('shuffling'), 600);
+// ===== オーバーレイでカードを開く =====
+function openRevealOverlay(idx) {
+  const el = document.getElementById(`tcard-${idx}`);
+  if (el.dataset.revealed === '1') return;
 
-  // シャッフル
-  tarotDeck = [...tarotCards].sort(() => Math.random() - 0.5);
-  drawnCards = [];
-  flippedCount = 0;
+  revealIdx = idx;
+  const positions = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
+  const total = tarotMode;
 
-  // カードスロット再構築
-  buildCardSlots();
+  // オーバーレイを開く
+  const overlay = document.getElementById('cardRevealOverlay');
+  document.getElementById('revealProgress').textContent =
+    total > 1 ? `${idx + 1} / ${total} 枚目` : '';
+  document.getElementById('revealPositionBadge').textContent =
+    positions[idx] ? `✦ ${positions[idx]} ✦` : '✦ あなたへのメッセージ ✦';
 
-  // カードを配る
-  document.getElementById('tarotResult').style.display = 'none';
-  document.getElementById('tarotHint').textContent = 'カードをタップしてめくってください';
-  document.getElementById('flipHint').style.display = 'block';
+  // 大カードをリセット（裏面）
+  const inner = document.getElementById('bigCardInner');
+  inner.className = 'tarot-card-big-inner';
+  document.getElementById('bigCardFront').innerHTML = '';
+  document.getElementById('revealDetailPanel').style.display = 'none';
 
-  for (let i = 0; i < tarotMode; i++) {
-    const card = tarotDeck[i];
-    const isReversed = Math.random() > 0.5;
-    drawnCards.push({ card, isReversed });
+  // ボタンテキスト
+  const isLast = (idx === tarotMode - 1);
+  document.getElementById('revealConfirmBtn').textContent =
+    isLast ? '✦ 全ての結果を見る ✦' : `✦ 次のカードを引く（${idx + 2}枚目）✦`;
 
-    const el = document.getElementById(`tcard-${i}`);
-    el.style.animationDelay = `${i * 0.15}s`;
-    el.classList.add('dealing');
-    el.onclick = () => flipCard(i);
-  }
+  overlay.style.display = 'flex';
+  overlay.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
 }
 
-function flipCard(idx) {
-  const el = document.getElementById(`tcard-${idx}`);
-  if (el.classList.contains('flipped') || el.classList.contains('reversed')) return;
+function flipBigCard() {
+  const { card, isReversed } = drawnCards[revealIdx];
+  const inner = document.getElementById('bigCardInner');
+  if (inner.classList.contains('flipped') || inner.classList.contains('rev')) return;
 
-  const { card, isReversed } = drawnCards[idx];
-  const front = el.querySelector('.tarot-card-front');
-  front.innerHTML = `
+  // 大カードの表面を設定
+  document.getElementById('bigCardFront').innerHTML = `
+    <div class="big-card-num">${card.num}</div>
+    <div class="big-card-emoji">${card.emoji}</div>
+    <div class="big-card-name">${card.name}</div>
+    ${isReversed ? '<div class="big-card-rev">逆位置</div>' : ''}
+  `;
+  inner.classList.add('flipped');
+  if (isReversed) inner.classList.add('rev');
+
+  // 詳細パネルを表示
+  setTimeout(() => {
+    const meaning = isReversed ? card.reversed : card.upright;
+    const badge = isReversed
+      ? '<span class="tarot-detail-rev-badge badge-reversed">逆位置</span>'
+      : '<span class="tarot-detail-rev-badge badge-upright">正位置</span>';
+    const positions = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
+    const posLabel = positions[revealIdx] ? `${positions[revealIdx]} ／ ` : '';
+
+    document.getElementById('revealEmoji').textContent = card.emoji;
+    document.getElementById('revealCardNum').textContent = `${posLabel}${card.num} — ${card.en}`;
+    document.getElementById('revealCardName').textContent = card.name;
+    document.getElementById('revealRevBadge').innerHTML = badge;
+    document.getElementById('revealKeywords').innerHTML =
+      card.keywords.map(k => `<span class="tarot-kw">${k}</span>`).join('');
+    document.getElementById('revealMeaning').textContent = meaning;
+
+    const panel = document.getElementById('revealDetailPanel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    launchParticles();
+  }, 500);
+}
+
+function confirmReveal() {
+  // スロットのカードを表向きにする
+  const el = document.getElementById(`tcard-${revealIdx}`);
+  const { card, isReversed } = drawnCards[revealIdx];
+  el.dataset.revealed = '1';
+  el.querySelector('.tarot-card-front').innerHTML = `
     <div class="tarot-card-num">${card.num}</div>
     <div class="tarot-card-emoji">${card.emoji}</div>
     <div class="tarot-card-name">${card.name}</div>
-    ${isReversed ? '<div class="tarot-card-rev">逆位置</div>' : ''}
+    ${isReversed ? '<div class="tarot-card-rev">逆</div>' : ''}
   `;
-
   el.classList.add(isReversed ? 'reversed' : 'flipped');
   el.onclick = null;
-  flippedCount++;
+  const hint = document.getElementById(`slot-hint-${revealIdx}`);
+  if (hint) hint.style.display = 'none';
 
-  launchParticles();
+  // オーバーレイを閉じる
+  document.getElementById('cardRevealOverlay').style.display = 'none';
+  document.body.style.overflow = '';
 
-  if (flippedCount === tarotMode) {
-    setTimeout(showTarotResult, 800);
+  const isLast = (revealIdx === tarotMode - 1);
+  if (isLast) {
+    setTimeout(showTarotResult, 400);
   }
 }
 
@@ -2917,11 +3285,9 @@ function showTarotResult() {
         </div>
         <div class="tarot-keywords">${card.keywords.map(k=>`<span class="tarot-kw">${k}</span>`).join('')}</div>
         <p class="tarot-meaning">${meaning}</p>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
-  // 3枚引きの総合メッセージ
   const overall = document.getElementById('tarotOverall');
   if (tarotMode === 3) {
     const idx = Math.floor(Math.random() * tarotOverallMessages3.length);
@@ -2936,17 +3302,18 @@ function showTarotResult() {
   result.style.animation = 'none';
   requestAnimationFrame(() => { result.style.animation = 'fadeInUp 0.6s ease'; });
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  document.getElementById('flipHint').style.display = 'none';
-  document.getElementById('tarotHint').textContent = 'カードが語りかけています';
 }
 
 function resetTarot() {
-  drawnCards = []; flippedCount = 0; tarotDeck = [];
+  tarotDeck = []; drawnCards = []; revealIdx = 0; isShuffling = false;
+  document.getElementById('cardRevealOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+  buildVisualDeck();
   buildCardSlots();
   document.getElementById('tarotResult').style.display = 'none';
-  document.getElementById('tarotHint').textContent = 'カードをシャッフルして、引いてください';
-  document.getElementById('flipHint').style.display = 'none';
+  document.getElementById('shufflePhaseLabel').textContent = 'カードに手を触れて、心を込めてシャッフルを';
+  const btn = document.getElementById('shuffleBtn');
+  btn.disabled = false; btn.style.opacity = '1';
 }
 
 function launchParticles() {
