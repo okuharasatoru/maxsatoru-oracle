@@ -271,9 +271,18 @@ select option{background:#1a0840;color:#ede9fe;}
 .cal-cell.today{border-color:var(--gold);}
 .cal-cell.sel{background:rgba(124,58,237,.4);}
 .cal-cell .cd{font-size:13px;font-weight:700;color:var(--text);}
-.cal-dots{display:flex;gap:2px;}
-.cal-dots i{width:4px;height:4px;border-radius:50%;display:block;}
-.dot-on{background:var(--gold-l);}.dot-off{background:rgba(124,58,237,.3);}
+.cal-dots{display:flex;gap:2px;justify-content:center;margin-top:3px;}
+.cal-dots i{width:5px;height:5px;border-radius:50%;display:block;flex-shrink:0;}
+.dot-1{background:#4c1d95;}.dot-2{background:#7c3aed;}.dot-3{background:#a78bfa;}
+.dot-4{background:var(--gold);}.dot-5{background:var(--gold-l);}
+.dot-off{background:rgba(124,58,237,.2);}
+/* 詳細パネルの運勢レベルバー */
+.fortune-level{display:flex;gap:5px;align-items:center;margin:10px 0;}
+.fortune-level i{width:28px;height:8px;border-radius:4px;display:block;}
+.fl-on-1{background:#4c1d95;}.fl-on-2{background:#6d28d9;}
+.fl-on-3{background:#a78bfa;}.fl-on-4{background:var(--gold);}
+.fl-on-5{background:var(--gold-l);}
+.fl-off{background:rgba(124,58,237,.15);}
 
 /* LOGIN BONUS */
 #loginBonusOverlay{position:fixed;inset:0;z-index:300;background:rgba(7,2,26,.97);backdrop-filter:blur(12px);
@@ -681,9 +690,6 @@ function initHome(){
     '<div class="card" style="margin-top:14px;">'+
       '<div class="sec-title">今日の一言</div>'+
       '<div style="font-size:14px;color:var(--text);">'+msgPart3[msgIdx]+'</div>'+
-    '</div>'+
-    '<div class="trust-bar">'+
-      '<div><b>★4.8</b>満足度</div><div><b>1,024</b>レビュー件数</div><div><b>監修</b>占術研究家</div>'+
     '</div>'+
     '<div class="foot">Developed by MAXSATORU</div>';
 }
@@ -1581,7 +1587,10 @@ function renderCalendar(){
     const level=seededRand(sd+sgn,1,5);
     const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
     const isSel=calSel===d;
-    let dots='';for(let k=0;k<5;k++)dots+='<i class="'+(k<level?'dot-on':'dot-off')+'"></i>';
+    let dots='';
+    for(let k=0;k<5;k++){
+      dots+='<i class="'+(k<level?'dot-'+level:'dot-off')+'"></i>';
+    }
     html+='<div class="cal-cell '+(isToday?'today':'')+' '+(isSel?'sel':'')+'" onclick="showCalDetail('+d+','+calMonth+','+calYear+','+level+')">'+
       '<div class="cd">'+d+'</div><div class="cal-dots">'+dots+'</div></div>';
   }
@@ -1595,11 +1604,13 @@ function showCalDetail(d,m,y,level){
   const sgn=calSign>=0?(+calSign)*131:0;
   const meters={恋愛:seededRand(sd+sgn+1,30,100),仕事:seededRand(sd+sgn+2,30,100),金運:seededRand(sd+sgn+3,30,100)};
   const msg=msgPart3[seededRand(sd+sgn,0,9)];
-  let dots='';for(let k=0;k<5;k++)dots+=k<level?'●':'○';
+  let levelBar='<div class="fortune-level">';
+  for(let k=0;k<5;k++) levelBar+='<i class="'+(k<level?'fl-on-'+level:'fl-off')+'"></i>';
+  levelBar+='<span style="font-size:13px;font-weight:700;color:var(--gold-l);margin-left:4px;">'+labels[level]+'</span></div>';
   const det=document.getElementById('calDetail');
   det.innerHTML='<div class="card gold">'+
     '<div style="font-weight:700;">'+y+'年'+(m+1)+'月'+d+'日（'+WD[new Date(y,m,d).getDay()]+'）</div>'+
-    '<div style="margin:8px 0;color:var(--gold-l);font-size:18px;">'+dots+' <span style="font-size:14px;">'+labels[level]+'</span></div>'+
+    levelBar+
     Object.entries(meters).map(([k,v])=>'<div class="meter-wrap"><div class="meter-lbl"><span>'+k+'</span><span>'+v+'%</span></div><div class="meter"><i style="width:'+v+'%"></i></div></div>').join('')+
     '<div style="font-size:13px;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;">'+msg+'</div>'+
   '</div>';
