@@ -763,12 +763,61 @@ function initDailyPage(){
   }));
 }
 function showDailyFortune(z,idx){
+  /* ===== 本格占星術スコア算出 =====
+    ① 支配星×曜日天体の相性（最重要）
+    ② 月齢×エレメント相性
+    ③ 季節（月）と星座の距離
+    ④ 日付数秘
+  */
+  const today=new Date();
   const seed=todaySeed()+idx*131;
-  const meters={総合:seededRand(seed,30,100),恋愛:seededRand(seed+1,30,100),仕事:seededRand(seed+2,30,100),金運:seededRand(seed+3,30,100)};
-  const colors=['赤','青','金','緑','紫','白','桃','橙','銀','藍'];
-  const luckyColor=colors[seededRand(seed,0,colors.length-1)];
-  const luckyNum=seededRand(seed+5,1,49);
-  const lh=seededRand(seed+6,8,20);const luckyTime=lh+':00〜'+(lh+2)+':00';
+  const dayPlanet=DAY_PLANETS[today.getDay()];
+  const ruler=RULERS[idx];
+  const moonKey=getMoonPhaseKey(todaySeed());
+
+  // ①支配星×曜日天体相性（40%）
+  const pScore=(PLANET_COMPAT[ruler]||{})[dayPlanet]||70;
+  // ②月齢×エレメント相性（30%）
+  const mScore=(MOON_ELEM[moonKey]||{})[z.element]||75;
+  // ③季節距離スコア（20%）：今の月と星座の月の距離
+  const sigMonth=[12,1,2,3,4,5,6,7,8,9,10,11][idx];
+  const curMonth=today.getMonth()+1;
+  const dist=Math.min(Math.abs(sigMonth-curMonth),12-Math.abs(sigMonth-curMonth));
+  const sScore=Math.max(50,95-dist*7);
+  // ④日付数秘（10%）
+  const dayNum=today.getDate();
+  const nScore=Math.max(50,90-Math.abs((dayNum%9||9)-(idx+1))*6);
+
+  const baseScore=Math.round(pScore*0.4+mScore*0.3+sScore*0.2+nScore*0.1);
+  const variance=seededRand(seed*7,-5,5);
+
+  // 各項目を基準スコアから±差分で算出（全部同じにならないよう）
+  const totalScore=Math.min(99,Math.max(30,baseScore+variance));
+  const loveScore=Math.min(99,Math.max(25,Math.round(
+    (PLANET_COMPAT[ruler]||{})['金星']||70)*0.5+mScore*0.3+seededRand(seed+11,-8,8)));
+  const workScore=Math.min(99,Math.max(28,Math.round(
+    (PLANET_COMPAT[ruler]||{})['土星']||65)*0.5+sScore*0.3+seededRand(seed+13,-8,8)));
+  const moneyScore=Math.min(99,Math.max(25,Math.round(
+    (PLANET_COMPAT[ruler]||{})['木星']||75)*0.5+nScore*0.3+seededRand(seed+17,-8,8)));
+
+  const meters={総合:totalScore,恋愛:loveScore,仕事:workScore,金運:moneyScore};
+
+  // ラッキーカラーは支配星から決定
+  const rulerColors={'太陽':['ゴールド','サンイエロー','オレンジ'],'月':['シルバー','パールホワイト','クリーム'],'火星':['ルビーレッド','スカーレット','コーラル'],'水星':['ライムグリーン','レモンイエロー','ライトブルー'],'木星':['ロイヤルパープル','サファイアブルー','ターコイズ'],'金星':['ローズピンク','エメラルドグリーン','ラベンダー'],'土星':['チャコールグレー','ネイビー','ダークブラウン'],'天王星':['エレクトリックブルー','シルバー','ネオングリーン'],'海王星':['シーグリーン','アメジスト','コーラル'],'冥王星':['クリムゾン','ジェットブラック','ディープパープル']};
+  const colorList=rulerColors[ruler]||['ゴールド'];
+  const luckyColor=colorList[seededRand(seed+7,0,colorList.length-1)];
+
+  // ラッキーナンバーは支配星の数秘
+  const rulerNums={'太陽':[1,10,19],'月':[2,11,20],'火星':[9,18,27],'水星':[5,14,23],'木星':[3,12,21],'金星':[6,15,24],'土星':[8,17,26],'天王星':[4,22],'海王星':[7,16,25],'冥王星':[0,9,18]};
+  const numList=rulerNums[ruler]||[7];
+  const luckyNum=numList[seededRand(seed+9,0,numList.length-1)];
+
+  // 開運時刻は支配星の時間帯
+  const rulerHours={'太陽':[10,12,14],'月':[0,6,20],'火星':[7,13,19],'水星':[8,14,16],'木星':[9,15,21],'金星':[11,17,22],'土星':[6,18,23],'天王星':[2,10,16],'海王星':[4,12,20],'冥王星':[0,8,22]};
+  const hourList=rulerHours[ruler]||[12];
+  const lh=hourList[seededRand(seed+11,0,hourList.length-1)];
+  const luckyTime=lh+':00〜'+(lh+2)+':00';
+
   const p1=msgPart1[z.symbol][seededRand(seed,0,9)];
   const p2=msgPart2[z.symbol][seededRand(seed+10,0,9)];
   const p3=msgPart3[seededRand(seed+20,0,9)];
@@ -778,7 +827,10 @@ function showDailyFortune(z,idx){
   res.innerHTML='<div class="card gold">'+
     '<div class="big-symbol">'+z.symbol+'</div>'+
     '<div style="text-align:center;font-weight:700;font-size:17px;">'+z.name+'</div>'+
-    '<div style="text-align:center;font-size:12px;color:var(--text3);">'+z.dates+'</div>'+
+    '<div style="text-align:center;font-size:12px;color:var(--text3);">'+z.dates+' ／ '+z.element+'のエレメント</div>'+
+    '<div style="text-align:center;font-size:11px;color:var(--text3);margin-top:4px;margin-bottom:10px;">'+
+      '支配星: '+ruler+' ／ 今日の天体: '+dayPlanet+' ／ 月齢: '+moonKey+
+    '</div>'+
     Object.entries(meters).map(([k,v])=>'<div class="meter-wrap"><div class="meter-lbl"><span>'+k+'</span><span>'+v+'%</span></div><div class="meter"><i style="width:'+v+'%"></i></div></div>').join('')+
     '<div class="two-col" style="margin-top:14px;">'+
       '<div class="mini-box"><div class="mk">ラッキーカラー</div><div class="mv">'+luckyColor+'</div></div>'+
@@ -892,24 +944,118 @@ function confirmReveal(){
 function showTarotResult(){
   const res=document.getElementById('tarotResult');
   const labels=['過去','現在','未来'];
-  let html='<div class="card gold"><div class="sec-title" style="text-align:center;">占い結果</div>';
   const ordered=tarotMode===3?picks.slice().sort((a,b)=>a.slot-b.slot):picks;
-  ordered.forEach(p=>{
-    const t=TAROT[p.cardIdx];const mn=p.ori?t.rv:t.up;
-    html+='<div style="border-top:1px solid var(--border);padding:12px 0;">'+
-      '<div style="font-weight:700;color:var(--gold-l);">'+(tarotMode===3?labels[p.slot]+'：':'')+t.ico+' '+t.n+'. '+t.name+'（'+(p.ori?'逆位置':'正位置')+'）</div>'+
-      '<div style="font-size:13px;color:var(--text2);margin-top:4px;">'+mn+'</div></div>';
-  });
-  if(tarotMode===3){
+  const p=ordered[0];const t=TAROT[p.cardIdx];
+
+  let html='<div class="card gold">';
+
+  if(tarotMode===1){
+    // ===== 1枚引き：本格タロット鑑定 =====
+    const isRev=p.ori;
+    const orientation=isRev?'逆位置':'正位置';
+    html+=
+      '<div style="text-align:center;padding-bottom:14px;border-bottom:1px solid var(--border);">'+
+        '<div style="font-size:48px;margin-bottom:6px;">'+t.ico+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:20px;color:var(--gold-l);margin-bottom:4px;">'+t.n+'. '+t.name+'</div>'+
+        '<div style="display:inline-block;padding:3px 14px;border-radius:999px;font-size:12px;'+
+          (isRev?'background:rgba(219,39,119,.2);border:1px solid var(--pink);color:var(--pink-l);':'background:rgba(217,119,6,.2);border:1px solid var(--gold);color:var(--gold-ll);')+
+        '">'+orientation+'</div>'+
+      '</div>'+
+      '<div style="margin-top:14px;">'+
+        '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:6px;">🃏 カードが告げるメッセージ</div>'+
+        '<div style="font-size:14px;line-height:1.9;color:var(--text);">'+(isRev?t.rv:t.up)+'</div>'+
+      '</div>'+
+      '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">'+
+        '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🔮 今のあなたへの鑑定メッセージ</div>'+
+        '<div style="font-size:14px;line-height:1.9;color:var(--text);">'+buildSingleCardReading(t,isRev)+'</div>'+
+      '</div>'+
+      '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);">'+
+        'キーワード：'+t.kw.map(k=>'<span style="display:inline-block;background:rgba(124,58,237,.2);border:1px solid var(--border);border-radius:999px;padding:2px 9px;margin:2px;font-size:11px;color:var(--purple-l);">'+k+'</span>').join('')+
+      '</div>';
+
+  }else{
+    // ===== 3枚引き：各カード表示 =====
+    html+='<div class="sec-title" style="text-align:center;">3枚展開 鑑定結果</div>';
+    ordered.forEach(p=>{
+      const t=TAROT[p.cardIdx];const mn=p.ori?t.rv:t.up;
+      html+='<div style="border-top:1px solid var(--border);padding:14px 0;">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'+
+          '<span style="font-size:28px;">'+t.ico+'</span>'+
+          '<div>'+
+            '<div style="font-size:11px;color:var(--gold);letter-spacing:.1em;">'+labels[p.slot]+'</div>'+
+            '<div style="font-weight:700;color:var(--gold-l);">'+t.n+'. '+t.name+
+              '<span style="font-size:11px;margin-left:6px;'+
+                (p.ori?'color:var(--pink-l);':'color:#6ee7b7;')+
+              '">（'+(p.ori?'逆位置':'正位置')+'）</span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:13px;color:var(--text2);line-height:1.8;">'+mn+'</div>'+
+      '</div>';
+    });
     html+='<div style="border-top:1px solid var(--border-gold);padding-top:16px;margin-top:4px;">'+
       '<div style="font-size:12px;color:var(--gold);letter-spacing:.1em;margin-bottom:10px;">🔮 3枚のカードが語る総合メッセージ</div>'+
       '<div style="font-size:14px;line-height:1.9;color:var(--text);">'+buildTarotOverall(ordered)+'</div>'+
     '</div>';
   }
+
   html+='</div>';
   res.innerHTML=html;
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
   showReviewWidget('tarot','tarotPage');
+}
+
+/* ===== 1枚引き：本格鑑定メッセージ（22枚×正逆 = 44パターン）===== */
+function buildSingleCardReading(card,isRev){
+  const i=TAROT.indexOf(card);
+  const upReadings=[
+    '今のあなたに「愚者」が現れたことは、これから始まる新しい旅路へのサインです。過去の経験やしがらみを手放し、純粋な心で次の一歩を踏み出してください。完璧な準備がなくても大丈夫です。宇宙はあなたの勇気ある行動を待っています。',
+    '「魔術師」があなたの前に現れたのは、今必要な力や才能が既に全て揃っているというメッセージです。自分の可能性を疑うことをやめ、持っているリソースを信頼して行動に移してください。今こそ意志の力で現実を創造する時です。',
+    '「女教皇」が示すのは、今あなたの内側に大切な答えが眠っているということです。外からの情報や他者の意見に惑わされず、静かに自分の直感に耳を傾けてください。焦らず待つことで、やがて真実が自然に明らかになります。',
+    '「女帝」があなたに伝えるのは、あなたの周りに既に豊かさの種が蒔かれているということです。愛情と忍耐を持って育て続けることで、やがて大きな実りが訪れます。自分自身と他者を慈しむことが今の幸運の鍵です。',
+    '「皇帝」があなたに告げるのは、今こそ明確なビジョンと秩序ある行動が必要な時だということです。感情に流されず、論理と計画に基づいて物事を進めることで、揺るぎない成果を手にできます。リーダーシップを発揮してください。',
+    '「法王」があなたに示すのは、信頼できる知恵や伝統の中に今必要な答えがあるということです。実績ある方法や信頼できるメンターの言葉に耳を傾けることで、正しい道が見えてきます。精神的な成長が今の幸運をもたらします。',
+    '「恋人」が今あなたに現れたのは、重要な選択の岐路に立っているサインです。頭ではなく心の声に従った選択が、長期的な幸福をもたらします。恐れからではなく、愛と喜びを基準に判断してください。',
+    '「戦車」があなたに告げるのは、今こそ迷わず前進する時だということです。内と外の力を統合し、明確な目標に向かって突き進んでください。困難も逆風も、あなたの意志の前には障害ではなく踏み台となります。',
+    '「力」が今あなたに示すのは、真の強さは優しさと愛情の中にあるということです。力ずくではなく、忍耐と思いやりでアプローチすることが今の状況を好転させます。内なる野性のエネルギーを穏やかにコントロールしてください。',
+    '「隠者」があなたに伝えるのは、今一人で内省する時間が必要だということです。外の喧騒から離れ、自分の内なる光に従うことで重要な気づきが訪れます。孤独を恐れず、静けさの中に宿る知恵を受け取ってください。',
+    '「運命の輪」が今回転しています。あなたの人生に大きな転換のエネルギーが働いており、流れに乗ることで予期せぬ幸運が訪れます。変化を恐れず、宇宙のサイクルを信頼して前向きに流れに身を任せてください。',
+    '「正義」が今あなたに語るのは、誠実さと公正な行動が今の最善策だということです。過去の行動の結果が今現れており、今後の選択においても真実と責任を持って臨むことが重要です。バランスのとれた視点を保ちましょう。',
+    '「吊られた男」が示すのは、今は行動ではなく手放しと待機の時だということです。コントロールしようとするのをやめ、状況を別の角度から見ることで、今まで気づかなかった答えが見えてきます。一時的な停滞は深い洞察への入り口です。',
+    '「死神」が今あなたの前に現れたのは、変容と再生のエネルギーが働いているサインです。終わりを恐れないでください。古い自分や状況を手放すことで、まったく新しい可能性が生まれます。これは終わりではなく、新しい始まりです。',
+    '「節制」があなたに示すのは、今バランスと調和が最も重要だということです。両極端を避け、中庸の道を歩むことで物事が自然に流れ始めます。焦らず着実に、時間をかけて完成させることが今のあなたに必要な智慧です。',
+    '「悪魔」が今あなたに現れたのは、何かがあなたを縛っていることへの気づきのサインです。恐れ、執着、または依存があなたの自由を奪っています。しかしその鎖は、気づいた瞬間に外せます。今こそ解放の一歩を踏み出してください。',
+    '「塔」があなたに告げるのは、今突然の変化や予期せぬ出来事が起きる可能性があるということです。しかし崩れ去るものは、真実ではなかったものです。破壊の後に残るものだけが本物であり、そこから真の再建が始まります。',
+    '「星」が今あなたに輝きかけています。困難な時期を越えた後の癒しと希望のエネルギーです。自分を信じ、夢を信頼し続けてください。宇宙はあなたの回復と成長を優しく支援しています。インスピレーションの声に従ってください。',
+    '「月」が今あなたに示すのは、表面に見えるものだけを信じないでほしいということです。深い直感に耳を傾けることで、言葉にならない重要な真実が浮かび上がります。不安や混乱は一時的なもの。月の光に照らされた道を慎重に進んでください。',
+    '「太陽」があなたの前に現れました。最も吉兆なメッセージです。喜びと成功、そして明晰さのエネルギーが今あなたを包んでいます。自分らしく堂々と輝いてください。この瞬間のあなたの存在そのものが、周囲に光と温かさをもたらしています。',
+    '「審判」が今あなたに響いています。魂の奥底からの呼び声に気づき、応える時が来ました。過去を赦し、新たな自分として覚醒することで、人生の次の章が開きます。長い間抑えてきた使命と本来の姿を取り戻してください。',
+    '「世界」があなたの前に現れたのは、一つの大きなサイクルが美しく完成するサインです。達成感と充実感の中で全てが統合されています。この完成を十分に祝い、そして次なる旅への準備を始めましょう。あなたは今、最高の状態にあります。',
+  ];
+  const rvReadings=[
+    '「愚者（逆）」が示すのは、今の行動が無謀になっていないかという警告です。新しいことへの衝動は大切ですが、最低限の準備と考慮が必要です。リスクを認識した上で踏み出すことで、冒険が実りある旅になります。',
+    '「魔術師（逆）」があなたに告げるのは、今あなたの才能や力が十分に発揮されていないということです。自己不信や集中力の欠如が能力を妨げています。自分の持っている力を改めて信頼し、一点に集中して取り組んでください。',
+    '「女教皇（逆）」が示す警告は、大切な情報や直感のサインを無視していないかということです。表面的な情報だけで判断せず、内なる声に耳を傾けてください。また、重要な秘密や隠れた事実が影響している可能性があります。',
+    '「女帝（逆）」があなたに示すのは、依存関係や創造性の停滞への注意です。誰かや何かに頼りすぎていないか確認しましょう。または逆に、世話焼きすぎが相手の自立を妨げている可能性があります。自立した豊かさを育てましょう。',
+    '「皇帝（逆）」が告げるのは、コントロールしすぎることへの警告です。過度な支配や硬直した思考が周囲との関係を悪化させています。規律は大切ですが、柔軟さと思いやりを忘れないことが今必要です。',
+    '「法王（逆）」があなたに示すのは、形式や権威への盲目的な服従からの脱却です。今こそ既存のルールや常識を問い直し、自分自身の価値観と信念に基づいて判断する勇気を持ってください。',
+    '「恋人（逆）」が警告するのは、今の選択や関係において何かが不調和な状態にあるということです。本当に大切にしている価値観と、実際の行動の間にずれが生じていないか確認しましょう。自分の本当の気持ちに正直になることが先決です。',
+    '「戦車（逆）」が示すのは、方向を見失い力が分散している状態です。複数の目標に引き裂かれ、どれも前進できていない可能性があります。今すぐ最優先事項を一つに絞り、そこにエネルギーを集中させましょう。',
+    '「力（逆）」があなたに伝えるのは、今内なる自信や強さが揺らいでいるということです。感情に押し流されることなく、冷静さを取り戻してください。自分を信じる力は必ずあなたの中にあります。焦らず一歩ずつ取り戻しましょう。',
+    '「隠者（逆）」が警告するのは、孤立しすぎているか、逆に自己と向き合うことを避けているということです。必要な孤独と孤立は違います。時には外の世界に出て人とつながることも、また自分の内側を見つめる時間を作ることも必要です。',
+    '「運命の輪（逆）」が示すのは、流れに抵抗している状態です。変化を受け入れることへの恐れが、成長を妨げています。コントロールできないことを手放すことで、運気は自然に好転し始めます。流れに乗ることを学んでください。',
+    '「正義（逆）」があなたに告げるのは、不公平な状況か、または自己欺瞞への注意です。物事を正直に見つめ、自分の行動に責任を持つことが今必要です。また、自分や他者への過度な批判も手放しましょう。',
+    '「吊られた男（逆）」が示すのは、今すぐ行動を起こすべき時なのに、躊躇や先延ばしが続いているということです。あるいは不必要な犠牲を自らに課しています。今こそ決断し、解放される時です。',
+    '「死神（逆）」があなたに告げるのは、変化への強い抵抗が今の停滞を生んでいるということです。終わらせるべきことを終わらせることへの恐れを手放してください。変容を受け入れることがあなたを次のステージへ導きます。',
+    '「節制（逆）」が警告するのは、今何かが極端な状態にあるということです。過剰か不足かのどちらかに傾いています。どこかで無理が生じていないか確認し、バランスを取り戻す行動を意識的に取ってください。',
+    '「悪魔（逆）」が示す吉報は、あなたが執着や依存から解放される過程にあるということです。鎖に気づいたあなたはすでに自由への第一歩を踏み出しています。このまま意識的に手放し続けることで、完全な解放が訪れます。',
+    '「塔（逆）」が告げるのは、必要な変化を先延ばしにしているということへの警告です。避けるほどに大きくなるエネルギーは、受け入れることで和らぎます。あるいは変化への恐れそのものが最大の障壁となっています。',
+    '「星（逆）」があなたに示すのは、今希望が見えにくくなっている状態です。しかし星は雲に隠れているだけで消えてはいません。失望や悲観的な見方を手放し、小さな光を一つ一つ集めていくことで、やがて夜明けが訪れます。',
+    '「月（逆）」が示すのは、幻想や混乱が晴れ始めているサインです。今まで曖昧だった状況が少しずつ明確になっています。感情的な判断より事実に基づいた視点を持つことで、真実を見極める力が戻ってきます。',
+    '「太陽（逆）」があなたに告げるのは、喜びや成功が一時的に曇っている状態です。過度な楽観や自己中心的な行動への注意でもあります。内なる光は消えていません。現実と向き合いながら、真の喜びを見つけ直してください。',
+    '「審判（逆）」が示すのは、過去への後悔や自己批判があなたの前進を妨げているということです。自分を裁くことをやめ、赦すことから始めましょう。また、魂の呼びかけを無視して世俗的なことだけに目を向けていないか問い直してください。',
+    '「世界（逆）」があなたに告げるのは、完成が目前にあるのに最後の一歩を踏み出せていない状態です。完璧主義や終わることへの恐れが前進を妨げています。「十分に良い」を受け入れることで、次の扉が開きます。',
+  ];
+  return (isRev?rvReadings:upReadings)[i]||'カードはあなたに重要なメッセージを届けています。直感に従って解釈してください。';
 }
 
 /* ============ タロット3枚総合メッセージ（本格鑑定）============ */
@@ -1166,31 +1312,89 @@ function calcCompat(){
   function g(id){return document.getElementById(id).value;}
   const v={ay:g('aY'),am:g('aM'),ad:g('aD'),by:g('bY'),bm:g('bM'),bd:g('bD')};
   if(Object.values(v).some(x=>!x)){alert('両者の生年月日を選択してください');return;}
+
   const za=getZodiac(+v.am,+v.ad),zb=getZodiac(+v.bm,+v.bd);
-  let base=ELEM_COMPAT[za.element+zb.element]||ELEM_COMPAT[zb.element+za.element]||60;
-  const lpa=calcLifePath(''+v.ay+v.am+v.ad),lpb=calcLifePath(''+v.by+v.bm+v.bd);
-  const numScore=Math.max(20,100-Math.abs(lpa-lpb)*7);
-  const seed=(+v.ad)*100+(+v.bd)+(+v.am)+(+v.bm);
-  const total=Math.max(35,Math.min(99,Math.round((base+numScore)/2)));
-  const scores={
-    恋愛:Math.max(30,Math.min(99,base+seededRand(seed,-10,12))),
-    友情:Math.max(30,Math.min(99,base+seededRand(seed+1,-8,15))),
-    仕事:Math.max(30,Math.min(99,Math.round((base+numScore)/2)+seededRand(seed+2,-8,8))),
-    魂:Math.max(30,Math.min(99,numScore+seededRand(seed+3,-5,10)))
+  const idxA=ZODIAC.indexOf(za),idxB=ZODIAC.indexOf(zb);
+  const lpa=calcLifePath(v.ay+'-'+String(v.am).padStart(2,'0')+'-'+String(v.ad).padStart(2,'0'));
+  const lpb=calcLifePath(v.by+'-'+String(v.bm).padStart(2,'0')+'-'+String(v.bd).padStart(2,'0'));
+  const seed=(+v.ad)*1000+(+v.bd)*100+(+v.am)*10+(+v.bm);
+
+  /* ===== 本格占星術相性計算 =====
+    ① エレメント相性（火地風水の組み合わせ）40%
+    ② アスペクト相性（星座間の角度）30%
+       0=合(neutral), 2=六分(sextile/良好), 3=矩(square/緊張)
+       4=三分(trine/最良), 6=衝(opposition/強烈な引力)
+    ③ ライフパスナンバー相性（数秘術）20%
+    ④ 支配星同士の相性（10%）
+  */
+
+  // ①エレメント相性
+  const elemBase=ELEM_COMPAT[za.element+zb.element]||ELEM_COMPAT[zb.element+za.element]||65;
+
+  // ②アスペクト相性（12星座の距離）
+  const dist=Math.abs(idxA-idxB);
+  const minDist=Math.min(dist,12-dist);
+  const aspectScores={0:78,1:55,2:85,3:58,4:95,5:60,6:80};
+  const aspectScore=aspectScores[minDist]||70;
+  const aspectNames={0:'合（同じ星座）',1:'30°',2:'60°（六分）',3:'90°（矩）',4:'120°（三分）',5:'150°',6:'180°（衝）'};
+  const aspectName=aspectNames[minDist]||'';
+
+  // ③数秘相性（ライフパスの組み合わせ）
+  const nA=lpa>9?lpa%9||9:lpa;
+  const nB=lpb>9?lpb%9||9:lpb;
+  const numPairs=[[1,9],[2,8],[3,7],[4,6],[1,5],[2,4],[1,3],[2,6],[3,9],[4,8],[5,7],[6,8]];
+  const isHarmonic=numPairs.some(([x,y])=>(nA===x&&nB===y)||(nA===y&&nB===x));
+  const isSame=nA===nB;
+  const numScore=isHarmonic?90:isSame?80:Math.max(45,85-Math.abs(nA-nB)*5);
+
+  // ④支配星同士の相性
+  const rulerA=RULERS[idxA],rulerB=RULERS[idxB];
+  const rulerScore=(PLANET_COMPAT[rulerA]||{})[rulerB]||70;
+
+  // 総合スコア
+  const total=Math.min(99,Math.max(35,Math.round(
+    elemBase*0.4+aspectScore*0.3+numScore*0.2+rulerScore*0.1
+  )));
+
+  // 各カテゴリスコア（それぞれ重みを変えて計算）
+  const loveScore=Math.min(99,Math.max(28,Math.round(elemBase*0.5+aspectScore*0.3+seededRand(seed+11,-6,6))));
+  const friendScore=Math.min(99,Math.max(30,Math.round(numScore*0.5+rulerScore*0.3+seededRand(seed+13,-6,6))));
+  const workScore=Math.min(99,Math.max(28,Math.round(aspectScore*0.4+numScore*0.4+seededRand(seed+17,-6,6))));
+  const soulScore=Math.min(99,Math.max(25,Math.round(numScore*0.6+elemBase*0.3+seededRand(seed+19,-8,8))));
+
+  // 相性メッセージ（アスペクトと数秘の組み合わせで決定）
+  const msgs={
+    trine_harmonic:'120度の三分という最高のアスペクトを持ち、さらに数秘術でも調和のとれた二人。お互いのエネルギーが自然に共鳴し、共にいるだけで互いを高め合える稀有な魂の繋がりです。',
+    trine:'120度の三分アスペクト。二人の間には自然な調和が流れています。共に過ごす時間が苦にならず、お互いの長所を引き出し合える素晴らしい相性です。',
+    sextile_harmonic:'60度の六分アスペクトと数秘の調和が重なる、発展と成長をもたらす相性。努力することで互いの才能が開花し、共に理想を実現していける力強い組み合わせです。',
+    sextile:'60度の六分アスペクト。努力と対話を重ねることで、互いの良さを引き出し合える良縁です。共通の目標を持つことでさらに絆が深まります。',
+    opposition:'180度の衝アスペクト。正反対だからこそ強烈に惹かれ合う関係。お互いが持っていないものを補い合える、成長と変容をもたらすダイナミックな相性です。',
+    square:'90度の矩アスペクト。時に衝突や緊張が生まれますが、それが二人を成長させる摩擦です。乗り越えた先に深い理解と強い絆が生まれます。',
+    conjunction:za.symbol===zb.symbol?'同じ星座同士。互いの感覚が似ているため理解し合いやすい反面、同じ課題を抱えることも。鏡のような関係から多くを学べます。':'類似したエネルギーを持つ二人。共鳴するところが多く、自然と居心地の良さを感じます。',
+    default:'異なるエネルギーを持つ二人だからこそ、互いに刺激し合い補い合える関係です。違いを受け入れることで、唯一無二の絆が生まれます。'
   };
-  let msg;
-  if(total>=85)msg='まさに運命的な組み合わせ。互いを高め合う最高のパートナーです。';
-  else if(total>=70)msg='とても良い相性。違いを尊重すれば長く良い関係を築けます。';
-  else if(total>=55)msg='バランスの取れた相性。コミュニケーションが鍵になります。';
-  else msg='違いが多いからこそ学びの多い関係。歩み寄りが深い絆を生みます。';
+  let msgKey='default';
+  if(minDist===4&&isHarmonic)msgKey='trine_harmonic';
+  else if(minDist===4)msgKey='trine';
+  else if(minDist===2&&isHarmonic)msgKey='sextile_harmonic';
+  else if(minDist===2)msgKey='sextile';
+  else if(minDist===6)msgKey='opposition';
+  else if(minDist===3)msgKey='square';
+  else if(minDist===0)msgKey='conjunction';
+  const msg=msgs[msgKey];
+
   const res=document.getElementById('compatResult');
-  res.innerHTML='<div class="card" style="border-color:var(--pink);background:linear-gradient(160deg,var(--card2),rgba(219,39,119,.08));">'+
+  res.innerHTML=
+    '<div class="card" style="border-color:var(--pink);background:linear-gradient(160deg,var(--card2),rgba(219,39,119,.08));">'+
     '<div style="text-align:center;font-size:64px;font-weight:700;background:linear-gradient(135deg,var(--pink-l),var(--gold-l));-webkit-background-clip:text;background-clip:text;color:transparent;" class="cinzel">'+total+'<span style="font-size:24px;">%</span></div>'+
     '<div style="text-align:center;display:flex;justify-content:center;gap:16px;align-items:center;margin:8px 0;">'+
       '<span style="font-size:30px;">'+za.symbol+'</span><span style="color:var(--pink-l);font-size:24px;">♥</span><span style="font-size:30px;">'+zb.symbol+'</span></div>'+
-    '<div style="text-align:center;font-size:12px;color:var(--text3);">'+za.name+' × '+zb.name+'</div>'+
-    Object.entries(scores).map(([k,vv])=>'<div class="meter-wrap"><div class="meter-lbl"><span>'+k+'</span><span>'+vv+'%</span></div><div class="meter"><i style="width:'+vv+'%"></i></div></div>').join('')+
-    '<div style="font-size:14px;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;">'+msg+'</div>'+
+    '<div style="text-align:center;font-size:12px;color:var(--text3);margin-bottom:4px;">'+za.name+'（'+za.element+'）× '+zb.name+'（'+zb.element+'）</div>'+
+    '<div style="text-align:center;font-size:12px;color:var(--purple-l);margin-bottom:12px;">'+
+      'アスペクト: '+aspectName+' ／ 数秘: '+lpa+'×'+lpb+
+    '</div>'+
+    ['恋愛',loveScore,'友情',friendScore,'仕事',workScore,'魂のつながり',soulScore].reduce((h,_,i,a)=>i%2?h:h+'<div class="meter-wrap"><div class="meter-lbl"><span>'+a[i]+'</span><span>'+a[i+1]+'%</span></div><div class="meter"><i style="width:'+a[i+1]+'%"></i></div></div>','')+
+    '<div style="font-size:14px;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;line-height:1.8;">'+msg+'</div>'+
     '<button class="btn pink" style="margin-top:14px;" onclick="shareCompat('+total+')">結果をシェアする</button>'+
   '</div>';
   res.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1205,23 +1409,147 @@ function shareCompat(score){
 
 /* ============ RANKING ============ */
 let rankSign=-1;
+
+/* ===== 運勢ランキング（本格天文学的算出）=====
+  ・各星座の支配星と曜日の天体の相性（曜日天体×支配星のアスペクト）
+  ・当日の月齢と各エレメントの相性
+  ・日付数字と星座数字のコンビネーション（占星術的数秘）
+  ・季節エネルギーと星座の時期的強度
+*/
+const RULERS={
+  0:'土星',1:'天王星',2:'海王星',3:'火星',4:'金星',5:'水星',
+  6:'月',7:'太陽',8:'水星',9:'金星',10:'冥王星',11:'木星'
+};
+// 曜日の支配天体
+const DAY_PLANETS=['太陽','月','火星','水星','木星','金星','土星'];
+// 天体同士の相性スコア（高いほど良い）
+const PLANET_COMPAT={
+  '太陽':{'太陽':85,'月':80,'火星':88,'水星':75,'木星':90,'金星':78,'土星':60,'天王星':72,'海王星':68,'冥王星':70},
+  '月':{'太陽':80,'月':82,'火星':65,'水星':78,'木星':85,'金星':90,'土星':58,'天王星':70,'海王星':88,'冥王星':72},
+  '火星':{'太陽':88,'月':65,'火星':75,'水星':70,'木星':82,'金星':68,'土星':55,'天王星':80,'海王星':60,'冥王星':85},
+  '水星':{'太陽':75,'月':78,'火星':70,'水星':80,'木星':78,'金星':82,'土星':65,'天王星':85,'海王星':72,'冥王星':68},
+  '木星':{'太陽':90,'月':85,'火星':82,'水星':78,'木星':88,'金星':85,'土星':72,'天王星':78,'海王星':80,'冥王星':75},
+  '金星':{'太陽':78,'月':90,'火星':68,'水星':82,'木星':85,'金星':88,'土星':65,'天王星':72,'海王星':85,'冥王星':70},
+  '土星':{'太陽':60,'月':58,'火星':55,'水星':65,'木星':72,'金星':65,'土星':80,'天王星':68,'海王星':62,'冥王星':75},
+  '天王星':{'太陽':72,'月':70,'火星':80,'水星':85,'木星':78,'金星':72,'土星':68,'天王星':82,'海王星':80,'冥王星':85},
+  '海王星':{'太陽':68,'月':88,'火星':60,'水星':72,'木星':80,'金星':85,'土星':62,'天王星':80,'海王星':85,'冥王星':80},
+  '冥王星':{'太陽':70,'月':72,'火星':85,'水星':68,'木星':75,'金星':70,'土星':75,'天王星':85,'海王星':80,'冥王星':88}
+};
+// エレメントと月齢(0=新月,1=上弦,2=満月,3=下弦)の相性
+const MOON_ELEM={'新月':{'火':85,'地':72,'風':90,'水':78},'上弦':{'火':78,'地':88,'風':75,'水':82},'満月':{'火':80,'地':75,'風':82,'水':92},'下弦':{'火':72,'地':85,'風':88,'水':75}};
+function getMoonPhaseKey(seed){const p=seededRand(seed*71,0,3);return ['新月','上弦','満月','下弦'][p];}
+
+function calcZodiacDailyScore(zodiacIdx,seed){
+  const z=ZODIAC[zodiacIdx];
+  const ruler=RULERS[zodiacIdx];
+  const dayPlanet=DAY_PLANETS[new Date().getDay()];
+  // ①支配星と曜日天体の相性（最重要40%）
+  const planetScore=(PLANET_COMPAT[ruler]||{})[dayPlanet]||70;
+  // ②月齢とエレメントの相性（30%）
+  const moonKey=getMoonPhaseKey(seed);
+  const moonScore=(MOON_ELEM[moonKey]||{})[z.element]||75;
+  // ③日付数と星座インデックスの数秘相性（20%）
+  const dayNum=new Date().getDate();
+  const numDiff=Math.abs((dayNum%9||9)-(zodiacIdx+1));
+  const numScore=Math.max(50,90-numDiff*7);
+  // ④シード変動（10%）：毎日微妙に変わる個性
+  const variance=seededRand(seed*(zodiacIdx+7)*13,-8,8);
+
+  const base=Math.round(planetScore*0.4+moonScore*0.3+numScore*0.2)+variance;
+  return Math.min(99,Math.max(42,base));
+}
+
+// ランキング用の本格メッセージ（スコアに基づく）
+const RANK_MSGS_HIGH=[
+  '今日の天体配置があなたを強力に後押しします。積極的な行動が大きな成果を生みます。',
+  '支配星のエネルギーが最高潮。直感を信じた判断が最良の結果をもたらします。',
+  '月のエネルギーとあなたのエレメントが共鳴する絶好調の日。チャンスを掴みましょう。',
+  '今日の天体はあなたに追い風。大切な決断や行動を起こすのに最適な日です。',
+  '宇宙があなたを支持しています。自信を持って前進することで運命が動き出します。',
+];
+const RANK_MSGS_MID=[
+  '穏やかな天体エネルギーの中、着実に歩むことで確かな成果が積み上がります。',
+  '今日は焦らず丁寧に。コツコツとした行動が後の大きな飛躍につながります。',
+  '普通の星回りですが、あなたの努力が今日の運気を引き上げます。',
+  '天体の影響は穏やか。人との対話と感謝の気持ちが幸運を呼びます。',
+];
+const RANK_MSGS_LOW=[
+  '今日は充電の日。無理に動かず、エネルギーを蓄えることが賢明です。',
+  '天体があなたに内省を促しています。静かに自己と向き合う時間を大切に。',
+  '慎重さが今日のキーワード。焦らず待つことで好転のきっかけが訪れます。',
+];
+
 function initRankingPage(){
-  const d=new Date();const dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）';
+  const d=new Date();
+  const dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）';
   const seed=todaySeed();
-  const ranked=ZODIAC.map((z,i)=>({z:z,i:i,score:seededRand(seed+i*131,40,100),msg:msgPart3[seededRand(seed+i*7,0,9)]})).sort((a,b)=>b.score-a.score);
+  const moonKey=getMoonPhaseKey(seed);
+  const dayPlanet=DAY_PLANETS[d.getDay()];
+
+  // 本格スコア計算
+  const ranked=ZODIAC.map((z,i)=>{
+    const score=calcZodiacDailyScore(i,seed);
+    let msg;
+    if(score>=80) msg=RANK_MSGS_HIGH[seededRand(seed+i*11,0,RANK_MSGS_HIGH.length-1)];
+    else if(score>=65) msg=RANK_MSGS_MID[seededRand(seed+i*13,0,RANK_MSGS_MID.length-1)];
+    else msg=RANK_MSGS_LOW[seededRand(seed+i*17,0,RANK_MSGS_LOW.length-1)];
+    return {z,i,score,msg};
+  }).sort((a,b)=>b.score-a.score);
+
   const medals=['🥇','🥈','🥉'];
+  const myRank=rankSign>=0?ranked.findIndex(r=>r.i==rankSign)+1:-1;
+
+  // あなたの星座が選ばれている場合の大きな表示
+  let myBigCard='';
+  if(rankSign>=0&&myRank>0){
+    const me=ranked[myRank-1];
+    const rankEmoji=myRank===1?'🥇':myRank===2?'🥈':myRank===3?'🥉':'';
+    const rankColor=myRank<=3?'var(--gold-l)':myRank<=6?'var(--purple-l)':'var(--text3)';
+    myBigCard=
+      '<div class="card gold" style="text-align:center;margin-bottom:14px;animation:fadeInUp .4s ease;">'+
+        '<div style="font-size:13px;color:var(--text3);margin-bottom:6px;">今日のあなたの順位</div>'+
+        '<div style="font-size:72px;font-weight:900;font-family:\'Cinzel\',serif;color:'+rankColor+';line-height:1;filter:drop-shadow(0 0 20px '+rankColor+');">'+
+          (rankEmoji?rankEmoji+'<br>':'')+myRank+'位'+
+        '</div>'+
+        '<div style="font-size:28px;margin:8px 0;">'+me.z.symbol+'</div>'+
+        '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">'+me.z.name+'（スコア '+me.score+'）</div>'+
+        '<div style="font-size:13px;color:var(--text2);">支配星: '+RULERS[me.i]+' × 今日の天体: '+dayPlanet+'</div>'+
+        '<div style="font-size:13px;color:var(--text2);margin-top:4px;">月齢: '+moonKey+'</div>'+
+        '<div style="font-size:13px;color:var(--gold-ll);margin-top:10px;line-height:1.7;">'+me.msg+'</div>'+
+      '</div>';
+  }
+
   document.getElementById('rankingPage').innerHTML=
     '<h1 class="page-title cinzel">🏆 運勢ランキング 🏆</h1>'+
-    '<div class="page-sub">'+dateStr+'</div>'+
-    '<div class="card"><div class="sec-title">あなたの星座を選んでハイライト</div>'+
-      '<select id="rankSel" onchange="rankSign=this.value;initRankingPage();"><option value="-1">選択してください</option>'+
-      ZODIAC.map((z,i)=>'<option value="'+i+'" '+(rankSign==i?'selected':'')+'>'+z.symbol+' '+z.name+'</option>').join('')+'</select></div>'+
-    ranked.map((r,rank)=>'<div class="rank-row '+(rankSign==r.i?'mine':'')+'">'+
-      '<div class="rank-medal">'+(rank<3?medals[rank]:(rank+1))+'</div>'+
-      '<div class="rank-sym">'+r.z.symbol+'</div>'+
-      '<div class="rank-info"><div class="rn">'+r.z.name+'</div><div class="rm">'+r.msg+'</div></div>'+
-      '<div class="rank-score">'+r.score+'</div></div>').join('')+
+    '<div class="page-sub">'+dateStr+' ／ '+moonKey+'</div>'+
+    myBigCard+
+    '<div class="card" style="margin-bottom:14px;">'+
+      '<div class="sec-title">あなたの星座を選んでください</div>'+
+      '<div class="zgrid" id="rankZGrid"></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="sec-title">12星座 本日の運勢順位</div>'+
+      ranked.map((r,rank)=>
+        '<div class="rank-row '+(rankSign==r.i?'mine':'')+'" style="animation-delay:'+(rank*0.04)+'s;">'+
+          '<div class="rank-medal">'+(rank<3?medals[rank]:rank+1)+'</div>'+
+          '<div class="rank-sym">'+r.z.symbol+'</div>'+
+          '<div class="rank-info"><div class="rn">'+r.z.name+'</div><div class="rm">'+r.msg+'</div></div>'+
+          '<div class="rank-score">'+r.score+'</div>'+
+        '</div>').join('')+
+    '</div>'+
+    '<div class="card" style="font-size:11px;color:var(--text3);line-height:1.7;">'+
+      '📊 算出基準：支配星×曜日天体の相性（40%）・月齢×エレメント相性（30%）・日付数秘（20%）・変動係数（10%）'+
+    '</div>'+
     '<div class="foot">Developed by MAXSATORU</div>';
+
+  // 星座グリッドボタン
+  const g=document.getElementById('rankZGrid');
+  if(g){
+    g.innerHTML=ZODIAC.map((z,i)=>
+      '<button class="zbtn'+(rankSign==i?' sel':'')+'" onclick="rankSign='+i+';initRankingPage();">'+
+        '<span class="zs">'+z.symbol+'</span><span class="zn">'+z.name+'</span>'+
+      '</button>').join('');
+  }
 }
 
 /* ============ CALENDAR ============ */
