@@ -3321,8 +3321,11 @@ function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ===== オーバーレイでカードを開く =====
 function openRevealOverlay(idx) {
-  const el = document.getElementById(`tcard-${idx}`);
-  if (el.dataset.revealed === '1') return;
+  // 3枚引き：既にめくり済みのカードは無視
+  if (tarotMode === 3) {
+    const dc = document.getElementById(`dcard-${idx}`);
+    if (dc && dc.classList.contains('revealed')) return;
+  }
 
   revealIdx = idx;
   const positions = tarotMode === 1 ? [''] : ['過去', '現在', '未来'];
