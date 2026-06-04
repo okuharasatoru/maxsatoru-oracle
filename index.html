@@ -555,10 +555,30 @@ function switchPage(id){
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
 
+/* ============ 昨日のアクセス数（公開日からの自然成長）============ */
+function calcYesterdayVisitors(){
+  // 公開日（ここを実際の公開日に変更できます）
+  const launch=new Date('2026-06-05');
+  const today=new Date();
+  const daysOld=Math.max(0,Math.floor((today-launch)/86400000));
+
+  // 初日188人〜180日後999人に向けてゆっくり成長
+  const base=Math.min(999,188+Math.floor(daysOld*4.5));
+
+  // 昨日のシードで±15%のブレ（毎日固定）
+  const yDate=new Date(Date.now()-86400000);
+  const ySeed=yDate.getFullYear()*10000+(yDate.getMonth()+1)*100+yDate.getDate();
+  const range=Math.floor(base*0.15);
+  const variation=seededRand(ySeed*41,-range,range);
+
+  return Math.max(100,base+variation);
+}
+
 /* ============ HOME ============ */
 function initHome(){
   const d=new Date();const seed=todaySeed();
   const dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）';
+  const yVisitors=calcYesterdayVisitors();
   const streak=getStreak();
   const total=calcTotalPoints(streak);
   const user=getUser();
@@ -578,6 +598,7 @@ function initHome(){
   document.getElementById('homePage').innerHTML=
     '<div class="card gold">'+
       '<div style="text-align:center;font-size:14px;color:var(--text2);">'+dateStr+' '+moonPhase()+'</div>'+
+      '<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--text3);">昨日 '+yVisitors.toLocaleString()+' 人がアクセスしました</div>'+
     '</div>'+
     '<div class="card" style="display:flex;align-items:center;gap:12px;">'+
       '<div style="font-size:32px;">🔥</div>'+
