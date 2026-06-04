@@ -683,43 +683,161 @@
     .tabs { flex-direction: column; }
   }
 
-  /* ===== ログインボーナスポップアップ ===== */
+  /* ===== ログインボーナス（全面リニューアル）===== */
   .login-bonus-overlay {
     position: fixed; inset: 0; z-index: 300;
-    background: rgba(5,2,20,0.88); backdrop-filter: blur(14px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px; animation: fadeIn 0.4s ease;
+    background: rgba(3,1,15,0.93); backdrop-filter: blur(18px);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 16px 14px 40px; overflow-y: auto;
+    animation: fadeIn 0.35s ease;
   }
+
   .login-bonus-card {
-    background: linear-gradient(135deg, rgba(26,10,62,0.97), rgba(10,14,46,0.99));
-    border: 1px solid rgba(212,175,55,0.5); border-radius: 28px;
-    padding: 36px 28px; text-align: center; max-width: 360px; width: 100%;
-    position: relative; overflow: hidden;
-    box-shadow: 0 0 80px rgba(107,47,160,0.5);
+    background: linear-gradient(160deg, rgba(28,10,68,0.98) 0%, rgba(10,6,35,0.99) 100%);
+    border: 1px solid rgba(212,175,55,0.45); border-radius: 26px;
+    width: 100%; max-width: 420px; overflow: hidden;
+    box-shadow: 0 0 80px rgba(107,47,160,0.45), 0 0 160px rgba(107,47,160,0.15);
     animation: fadeInUp 0.5s ease;
   }
-  .login-bonus-card::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+
+  /* ヘッダー部分 */
+  .lb-header {
+    padding: 28px 24px 20px; text-align: center;
+    background: linear-gradient(180deg, rgba(107,47,160,0.25) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(212,175,55,0.15);
+    position: relative;
+  }
+  .lb-header::after {
+    content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 1px;
     background: linear-gradient(to right, transparent, var(--gold), transparent);
   }
-  .streak-fire { font-size: 3rem; display: block; margin-bottom: 8px; animation: float 2s ease-in-out infinite; }
-  .streak-count {
-    font-family: 'Cinzel', serif; font-size: 4.5rem; font-weight: 900;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; line-height: 1;
-    filter: drop-shadow(0 0 20px rgba(212,175,55,0.6));
+  .lb-fire { font-size: 2.6rem; display: block; margin-bottom: 6px; animation: float 2.5s ease-in-out infinite; }
+  .lb-count {
+    font-family: 'Cinzel', serif; font-size: clamp(3.5rem,12vw,5rem); font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, #fff8dc 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 25px rgba(212,175,55,0.6));
+    animation: number-glow 3s ease-in-out infinite;
   }
-  .streak-unit { font-size: 1rem; color: var(--gold-light); letter-spacing: 0.2em; margin-bottom: 16px; }
-  .streak-bar-wrap { background: rgba(255,255,255,0.07); border-radius: 10px; height: 8px; margin: 16px 0; overflow: hidden; }
-  .streak-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(to right, var(--purple), var(--gold)); transition: width 1s ease; }
-  .streak-next { font-size: 0.72rem; color: var(--silver); letter-spacing: 0.1em; margin-bottom: 18px; }
-  .streak-reward-box {
+  .lb-unit { font-size: 0.95rem; color: var(--gold-light); letter-spacing: 0.25em; margin-bottom: 16px; }
+  .lb-points-row {
+    display: inline-flex; align-items: center; gap: 8px;
     background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
-    border-radius: 14px; padding: 12px 16px; margin-bottom: 20px;
+    border-radius: 20px; padding: 6px 16px;
+    font-size: 0.82rem; color: var(--gold-light);
   }
-  .streak-reward-title { font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; margin-bottom: 6px; }
-  .streak-reward-text { font-size: 0.88rem; color: var(--white); line-height: 1.6; }
+  .lb-points-num { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold); font-weight: 700; }
+
+  /* 今日の特典 */
+  .lb-today {
+    margin: 18px 18px 0;
+    background: linear-gradient(135deg, rgba(107,47,160,0.35), rgba(61,26,120,0.25));
+    border: 1px solid rgba(212,175,55,0.35); border-radius: 16px; padding: 16px;
+  }
+  .lb-today-label { font-size: 0.65rem; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 10px; }
+  .lb-today-reward {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .lb-today-icon { font-size: 2rem; flex-shrink: 0; }
+  .lb-today-text { font-size: 0.88rem; color: var(--white); line-height: 1.6; }
+  .lb-today-tag {
+    display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.65rem;
+    background: rgba(212,175,55,0.2); border: 1px solid rgba(212,175,55,0.4);
+    color: var(--gold-light); letter-spacing: 0.1em; margin-top: 4px;
+  }
+
+  /* 次のマイルストーン進捗 */
+  .lb-progress { padding: 16px 18px 0; }
+  .lb-progress-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.7rem; color: var(--silver); letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .lb-bar-wrap { background: rgba(255,255,255,0.07); border-radius: 8px; height: 10px; overflow: hidden; }
+  .lb-bar-fill {
+    height: 100%; border-radius: 8px;
+    background: linear-gradient(to right, var(--purple), #a040e0, var(--gold));
+    transition: width 1.2s cubic-bezier(0.17,0.67,0.35,1);
+    position: relative; overflow: hidden;
+  }
+  .lb-bar-fill::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: bar-shine 2s ease-in-out infinite;
+  }
+  @keyframes bar-shine { to { left: 200%; } }
+
+  /* ロードマップ */
+  .lb-roadmap { padding: 18px 18px 0; }
+  .lb-roadmap-title {
+    font-size: 0.7rem; color: var(--gold); letter-spacing: 0.25em;
+    text-transform: uppercase; margin-bottom: 14px; text-align: center;
+  }
+  .lb-milestones { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; scrollbar-width: none; }
+  .lb-milestones::-webkit-scrollbar { display: none; }
+
+  .lb-mile {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 10px 14px; position: relative;
+    transition: all 0.3s;
+  }
+  .lb-mile.achieved {
+    background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3);
+  }
+  .lb-mile.current {
+    background: rgba(107,47,160,0.2); border-color: var(--violet);
+    box-shadow: 0 0 14px rgba(107,47,160,0.3);
+  }
+  .lb-mile.locked { opacity: 0.45; }
+  .lb-mile-icon { font-size: 1.3rem; flex-shrink: 0; width: 32px; text-align: center; }
+  .lb-mile-info { flex: 1; min-width: 0; }
+  .lb-mile-days {
+    font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--gold-light); margin-bottom: 2px;
+  }
+  .lb-mile-name { font-size: 0.82rem; color: var(--white); margin-bottom: 2px; }
+  .lb-mile-desc { font-size: 0.68rem; color: var(--silver); line-height: 1.4; }
+  .lb-mile-pts {
+    font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold); flex-shrink: 0;
+    text-align: right;
+  }
+  .lb-mile-badge {
+    position: absolute; top: -6px; right: 10px;
+    font-size: 0.55rem; background: var(--gold); color: #000;
+    border-radius: 6px; padding: 1px 7px; letter-spacing: 0.08em; font-weight: 700;
+  }
+  .lb-mile-check {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 0.7rem; color: var(--gold); font-weight: 700;
+  }
+
+  /* ポイント説明 */
+  .lb-points-info {
+    margin: 14px 18px 0;
+    background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .lb-points-info-title { font-size: 0.68rem; color: var(--silver); letter-spacing: 0.2em; margin-bottom: 8px; }
+  .lb-points-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .lb-pt-item { font-size: 0.7rem; color: var(--white); display: flex; align-items: center; gap: 5px; }
+  .lb-pt-item span:first-child { font-size: 0.9rem; }
+
+  /* 閉じるボタン */
+  .lb-close-btn {
+    display: block; width: calc(100% - 36px); margin: 18px auto;
+    padding: 15px; border-radius: 14px;
+    background: linear-gradient(135deg, #4a1a8a, var(--violet));
+    border: 1px solid var(--gold); color: var(--gold-light);
+    font-family: 'Noto Serif JP', serif; font-size: 1rem; letter-spacing: 0.2em;
+    cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .lb-close-btn::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transition: left 0.5s;
+  }
+  .lb-close-btn:hover::before { left: 100%; }
+  .lb-close-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(107,47,160,0.6); }
+
   .streak-badge {
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4);
@@ -1644,16 +1762,58 @@
   <!-- ログインボーナスポップアップ -->
   <div class="login-bonus-overlay" id="loginBonusOverlay" style="display:none;">
     <div class="login-bonus-card">
-      <span class="streak-fire" id="streakFire">🔥</span>
-      <div class="streak-count" id="streakCount">1</div>
-      <div class="streak-unit">日連続参拝</div>
-      <div class="streak-bar-wrap"><div class="streak-bar-fill" id="streakBarFill" style="width:0%"></div></div>
-      <div class="streak-next" id="streakNext"></div>
-      <div class="streak-reward-box">
-        <div class="streak-reward-title">✦ 本日の解放特典 ✦</div>
-        <div class="streak-reward-text" id="streakRewardText"></div>
+
+      <!-- ヘッダー：参拝日数 + ポイント -->
+      <div class="lb-header">
+        <span class="lb-fire" id="lbFire">🔥</span>
+        <div class="lb-count" id="lbCount">1</div>
+        <div class="lb-unit">日連続参拝</div>
+        <div class="lb-points-row">
+          <span>累計ポイント</span>
+          <span class="lb-points-num" id="lbPoints">0</span>
+          <span style="color:var(--gold);font-size:0.8rem;">pt</span>
+        </div>
       </div>
-      <button class="btn" onclick="closeLoginBonus()" style="margin-top:0;">✦ 占いを始める ✦</button>
+
+      <!-- 今日の特典 -->
+      <div class="lb-today">
+        <div class="lb-today-label">✦ 本日の解放特典 ✦</div>
+        <div class="lb-today-reward">
+          <span class="lb-today-icon" id="lbTodayIcon">🌟</span>
+          <div>
+            <div class="lb-today-text" id="lbTodayText"></div>
+            <span class="lb-today-tag" id="lbTodayTag"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 次のマイルストーンまでの進捗 -->
+      <div class="lb-progress">
+        <div class="lb-progress-label">
+          <span id="lbProgressFrom"></span>
+          <span id="lbProgressTo"></span>
+        </div>
+        <div class="lb-bar-wrap"><div class="lb-bar-fill" id="lbBarFill" style="width:0%"></div></div>
+      </div>
+
+      <!-- ポイントの使い道 -->
+      <div class="lb-points-info">
+        <div class="lb-points-info-title">◈ ポイントで何ができる？</div>
+        <div class="lb-points-grid">
+          <div class="lb-pt-item"><span>🃏</span><span>隠しカード解放</span></div>
+          <div class="lb-pt-item"><span>🔮</span><span>特別タロット鑑定</span></div>
+          <div class="lb-pt-item"><span>👑</span><span>称号・バッジ獲得</span></div>
+          <div class="lb-pt-item"><span>🌟</span><span>スペシャル占い解放</span></div>
+        </div>
+      </div>
+
+      <!-- ロードマップ -->
+      <div class="lb-roadmap">
+        <div class="lb-roadmap-title">✦ 参拝ロードマップ ✦</div>
+        <div class="lb-milestones" id="lbMilestones"></div>
+      </div>
+
+      <button class="lb-close-btn" onclick="closeLoginBonus()">✦ 今日の占いを始める ✦</button>
     </div>
   </div>
 
@@ -2581,57 +2741,146 @@ function switchPage(page, btn) {
 // ===================================================
 // ===== 連続ログインボーナス =====
 // ===================================================
-const STREAK_REWARDS = [
-  { days:1,  emoji:'🌟', text:'毎日の星詠みが始まりました。宇宙があなたを歓迎しています。' },
-  { days:3,  emoji:'✨', text:'3日連続参拝！隠しタロットカード「宇宙」が解放されました。' },
-  { days:7,  emoji:'🌙', text:'7日連続参拝！週間スペシャル鑑定が解放されました。' },
-  { days:14, emoji:'💫', text:'14日連続！守護星座メッセージが解放されました。' },
-  { days:30, emoji:'👑', text:'30日連続！あなたは【マスターオラクル】の称号を獲得しました！' },
-  { days:100,emoji:'🌌', text:'100日連続達成！星詠みの申し子として宇宙に刻まれました！' },
+// ===== ロードマップ定義（1〜100日）=====
+const STREAK_MILESTONES = [
+  { days:1,   icon:'🌱', title:'はじめての参拝',         pts:10,  tag:'スタート',
+    desc:'宇宙があなたの訪れを歓迎しています。占いの旅が始まりました。',
+    reward:'今日の開運メッセージが毎日届きます' },
+  { days:3,   icon:'🌙', title:'三日坊主を超えた！',      pts:30,  tag:'称号解放',
+    desc:'3日間続けた証。月のリズムとあなたの心が共鳴し始めています。',
+    reward:'称号「月の旅人」解放 ＋ ラッキーストーン表示機能' },
+  { days:5,   icon:'⭐', title:'5日連続参拝',             pts:50,  tag:'ボーナス',
+    desc:'5日間の積み重ねが宇宙に刻まれました。直感力が高まっています。',
+    reward:'今日の開運時刻が表示されるようになります' },
+  { days:7,   icon:'🌟', title:'一週間の守護',            pts:100, tag:'特典解放',
+    desc:'7日間、星があなたを見守りました。週間スペシャル鑑定が解放。',
+    reward:'週間スペシャル鑑定「今週のテーマ」解放' },
+  { days:10,  icon:'💫', title:'10日の軌跡',              pts:120, tag:'称号',
+    desc:'10日の旅路。あなたの星詠みの力は着実に育っています。',
+    reward:'称号「星詠みの修行者」＋ 隠しタロットカード×1枚解放' },
+  { days:14,  icon:'🔮', title:'半月の探求者',            pts:180, tag:'特典解放',
+    desc:'半月を共に過ごしました。守護星座からの特別メッセージが届きます。',
+    reward:'守護星座の特別メッセージ機能解放' },
+  { days:21,  icon:'✨', title:'三週間の精進',             pts:250, tag:'称号',
+    desc:'21日間、人が習慣を作るのに必要な日数を超えました。',
+    reward:'称号「占いの習慣者」＋ 今月の特別運勢解放' },
+  { days:30,  icon:'👑', title:'マスターオラクル',        pts:500, tag:'最高称号',
+    desc:'30日間の連続参拝！あなたはMAXSATORU ORACLEの真の使い手です。',
+    reward:'称号「マスターオラクル」解放 ＋ 全タロット特典解放' },
+  { days:50,  icon:'🌌', title:'星詠みの求道者',          pts:750, tag:'称号',
+    desc:'50日間の旅路。星々はあなたの名を覚えています。',
+    reward:'称号「星詠みの求道者」＋ 特別占い「前世占い」解放（近日公開）' },
+  { days:60,  icon:'💎', title:'ダイヤモンドの魂',        pts:900, tag:'称号',
+    desc:'60日間、ダイヤのように磨かれた魂を宇宙が称えています。',
+    reward:'称号「ダイヤモンドソウル」＋ プレミアムデザインテーマ解放' },
+  { days:77,  icon:'🎴', title:'幸運数77の達人',          pts:1111,tag:'レア称号',
+    desc:'77は幸運と神秘の数。あなたは特別な存在として刻まれました。',
+    reward:'称号「幸運数の申し子」＋ 隠しタロットカード全枚解放' },
+  { days:100, icon:'🏆', title:'百日の伝説',              pts:2000,tag:'LEGEND',
+    desc:'100日間！あなたは伝説の占い師として宇宙の歴史に刻まれました。',
+    reward:'称号「百日の伝説」＋ LEGEND専用バッジ ＋ 全機能完全解放' },
 ];
+
+// ポイント計算（毎日の参拝pt + マイルストーン報酬pt）
+function calcTotalPoints(streak) {
+  // 毎日3pt × 日数
+  let pts = streak * 3;
+  // マイルストーン達成分を加算
+  STREAK_MILESTONES.forEach(m => { if (streak >= m.days) pts += m.pts; });
+  return pts;
+}
 
 function checkLoginStreak() {
   const today = new Date().toISOString().split('T')[0];
-  const data = JSON.parse(localStorage.getItem('msOracle') || '{}');
+  const data  = JSON.parse(localStorage.getItem('msOracle') || '{}');
   const last  = data.lastVisit || '';
   let streak  = data.streak || 0;
 
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   if (last === today) {
-    // 今日すでに来ている → 表示だけ
+    // 今日すでに来ている → ポップアップなし
   } else if (last === yesterday) {
     streak++;
   } else {
     streak = 1;
   }
 
-  localStorage.setItem('msOracle', JSON.stringify({ lastVisit: today, streak }));
+  localStorage.setItem('msOracle', JSON.stringify({ ...data, lastVisit: today, streak }));
 
   // バッジ更新
   document.getElementById('streakBadgeNum').textContent = streak;
-  document.getElementById('streakBadge').style.display = streak > 0 ? 'inline-flex' : 'none';
+  document.getElementById('streakBadge').style.display = 'inline-flex';
 
-  // ポップアップ（初回アクセス時のみ）
   if (last !== today) showLoginBonus(streak);
 }
 
 function showLoginBonus(streak) {
-  const milestones = [1,3,7,14,30,100];
-  const next = milestones.find(m => m > streak) || 100;
-  const prev = milestones.filter(m => m <= streak).pop() || 1;
-  const pct  = Math.min(100, Math.round(((streak - prev) / (next - prev)) * 100));
+  // 火アイコン（日数に応じて変化）
+  const fireMap = [[1,'🔥'],[7,'🔥🔥'],[14,'⚡🔥⚡'],[30,'🌟🔥🌟'],[60,'✨🔥✨'],[100,'👑🔥👑']];
+  const fire = [...fireMap].reverse().find(([d]) => streak >= d)?.[1] || '🔥';
+  document.getElementById('lbFire').textContent = fire;
+  document.getElementById('lbCount').textContent = streak;
 
-  document.getElementById('streakCount').textContent = streak;
-  document.getElementById('streakBarFill').style.width = pct + '%';
-  document.getElementById('streakNext').textContent = `次のボーナスまであと ${next - streak} 日`;
+  // ポイント
+  const pts = calcTotalPoints(streak);
+  document.getElementById('lbPoints').textContent = pts.toLocaleString();
 
-  // 火の絵文字（日数で変化）
-  const fires = ['🔥','🔥🔥','🔥🔥🔥','⚡🔥⚡','🌟🔥🌟','✨🔥✨'];
-  document.getElementById('streakFire').textContent = fires[Math.min(5, Math.floor(streak/5))];
+  // 今日の特典（現在のマイルストーン or デイリー）
+  const hitMilestone = [...STREAK_MILESTONES].reverse().find(m => m.days === streak);
+  const lastMilestone = [...STREAK_MILESTONES].reverse().find(m => streak >= m.days);
+  if (hitMilestone) {
+    document.getElementById('lbTodayIcon').textContent = hitMilestone.icon;
+    document.getElementById('lbTodayText').textContent = hitMilestone.reward;
+    document.getElementById('lbTodayTag').textContent  = '🎉 ' + hitMilestone.tag + ' 達成！';
+  } else {
+    document.getElementById('lbTodayIcon').textContent = '✦';
+    document.getElementById('lbTodayText').textContent = `本日の参拝ポイント +3pt を獲得しました！累計 ${pts.toLocaleString()}pt`;
+    document.getElementById('lbTodayTag').textContent  = lastMilestone ? `現在称号：${lastMilestone.title}` : '参拝を続けて特典を解放しよう';
+  }
 
-  // 特典テキスト
-  const reward = [...STREAK_REWARDS].reverse().find(r => streak >= r.days) || STREAK_REWARDS[0];
-  document.getElementById('streakRewardText').textContent = reward.emoji + ' ' + reward.text;
+  // 次のマイルストーン進捗バー
+  const nextMilestone = STREAK_MILESTONES.find(m => m.days > streak);
+  const prevMilestone = [...STREAK_MILESTONES].reverse().find(m => m.days <= streak);
+  if (nextMilestone) {
+    const from = prevMilestone ? prevMilestone.days : 0;
+    const pct  = Math.round(((streak - from) / (nextMilestone.days - from)) * 100);
+    document.getElementById('lbBarFill').style.width = pct + '%';
+    document.getElementById('lbProgressFrom').textContent = `${streak}日達成`;
+    document.getElementById('lbProgressTo').textContent   = `次: ${nextMilestone.icon} ${nextMilestone.days}日まで あと${nextMilestone.days - streak}日`;
+  } else {
+    document.getElementById('lbBarFill').style.width = '100%';
+    document.getElementById('lbProgressFrom').textContent = '全マイルストーン達成！';
+    document.getElementById('lbProgressTo').textContent   = '伝説の占い師';
+  }
+
+  // ロードマップ描画
+  const container = document.getElementById('lbMilestones');
+  container.innerHTML = '';
+  STREAK_MILESTONES.forEach(m => {
+    const achieved = streak >= m.days;
+    const current  = m.days === (nextMilestone ? nextMilestone.days : 100);
+    const locked   = !achieved && !current;
+    const div = document.createElement('div');
+    div.className = `lb-mile ${achieved ? 'achieved' : ''} ${current ? 'current' : ''} ${locked ? 'locked' : ''}`;
+    div.innerHTML = `
+      <div class="lb-mile-icon">${m.icon}</div>
+      <div class="lb-mile-info">
+        <div class="lb-mile-days">${m.days}日連続</div>
+        <div class="lb-mile-name">${m.title}</div>
+        <div class="lb-mile-desc">${m.reward}</div>
+      </div>
+      <div class="lb-mile-pts">+${m.pts}pt</div>
+      ${achieved ? '<div class="lb-mile-check">✓ 達成</div>' : ''}
+      ${current  ? '<div class="lb-mile-badge">NEXT</div>' : ''}
+    `;
+    container.appendChild(div);
+  });
+
+  // 現在位置までスクロール
+  setTimeout(() => {
+    const cur = container.querySelector('.current, .lb-mile.achieved:last-of-type');
+    if (cur) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 400);
 
   document.getElementById('loginBonusOverlay').style.display = 'flex';
 }
