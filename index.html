@@ -138,6 +138,61 @@ select option{background:#1a0840;color:#ede9fe;}
 .tile .ti{font-size:26px;}
 .tile .tl{font-size:12px;font-weight:700;color:var(--text);}
 
+/* 解放特典タイル */
+.reward-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.reward-tile{
+  border-radius:16px;padding:14px 10px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  min-height:90px;transition:transform .15s,box-shadow .2s;position:relative;overflow:hidden;
+}
+.reward-tile.unlocked{
+  background:linear-gradient(160deg,rgba(217,119,6,.18),rgba(124,58,237,.18));
+  border:1px solid var(--border-gold);cursor:pointer;
+}
+.reward-tile.unlocked:active{transform:scale(.96);}
+.reward-tile.unlocked::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+  animation:tileShine 3s ease-in-out infinite;
+}
+@keyframes tileShine{to{left:160%;}}
+.reward-tile.locked{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  opacity:.65;
+}
+.reward-tile .ri{font-size:26px;}
+.reward-tile .rl{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;}
+.reward-tile .rd{font-size:10px;color:var(--text3);margin-top:2px;}
+.reward-tile.unlocked .rl{color:var(--gold-ll);}
+.reward-new{
+  position:absolute;top:6px;right:6px;
+  background:var(--pink);color:#fff;font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:4px;letter-spacing:.05em;
+}
+
+/* 解放特典ページ（モーダル風オーバーレイ）*/
+.feature-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(4,1,18,.94);backdrop-filter:blur(18px);
+  overflow-y:auto;padding:20px 16px 80px;
+  animation:fadeIn .3s ease;
+}
+.feature-overlay .fo-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.fo-title{font-size:18px;font-weight:700;color:var(--gold-ll);}
+.fo-close{
+  background:rgba(255,255,255,.08);border:1px solid var(--border);
+  border-radius:999px;padding:6px 14px;color:var(--text3);
+  font-size:13px;cursor:pointer;min-height:36px;
+}
+.fo-badge{
+  display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;
+  background:rgba(217,119,6,.2);border:1px solid var(--border-gold);
+  color:var(--gold-ll);margin-bottom:14px;
+}
+
 /* BADGES */
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;margin:3px;
   background:rgba(217,119,6,.18);border:1px solid var(--border-gold);color:var(--gold-ll);}
@@ -429,6 +484,16 @@ select option{background:#1a0840;color:#ede9fe;}
   <button class="btn gold" id="ovConfirm" style="display:none;max-width:300px;margin-top:18px;" onclick="confirmReveal()">確定する</button>
 </div>
 
+<!-- 解放特典コンテンツオーバーレイ -->
+<div id="featureOverlay" style="display:none;" class="feature-overlay">
+  <div class="fo-header">
+    <div class="fo-title" id="foTitle"></div>
+    <button class="fo-close" onclick="document.getElementById('featureOverlay').style.display='none'">✕ 閉じる</button>
+  </div>
+  <div class="fo-badge" id="foBadge"></div>
+  <div id="foContent"></div>
+</div>
+
 <div id="loginBonusOverlay">
   <div class="lb-fire" id="lbFire">🔥</div>
   <div class="lb-streak cinzel" id="lbStreak">1</div>
@@ -691,6 +756,7 @@ function initHome(){
       '<div class="sec-title">今日の一言</div>'+
       '<div style="font-size:14px;color:var(--text);">'+msgPart3[msgIdx]+'</div>'+
     '</div>'+
+    buildRewardSection(streak)+
     '<div class="foot">Developed by MAXSATORU</div>';
 }
 
@@ -1793,6 +1859,326 @@ function initAdminPage() {
   // データ削除ボタン
   html += '<button class="btn ghost" style="margin-top:10px;" onclick="if(confirm(\'全レビューを削除しますか？\')){localStorage.removeItem(\'msReviews\');initAdminPage();}">🗑 全レビューを削除</button>';
   page.innerHTML = html;
+}
+
+/* ============================================================
+   解放特典システム
+   各マイルストーンで実際の占いコンテンツが解放される
+   ============================================================ */
+const REWARDS=[
+  {days:3,  icon:'🌌', title:'隠しカード「宇宙」',  tag:'EXCLUSIVE',
+   desc:'23枚目の秘密のタロットカード',
+   fn:'openCosmosCard'},
+  {days:7,  icon:'📅', title:'週間運勢鑑定',         tag:'7日連続解放',
+   desc:'今週月〜日の運勢を一気に確認',
+   fn:'openWeeklyFortune'},
+  {days:14, icon:'🪐', title:'守護星からのメッセージ', tag:'14日連続解放',
+   desc:'あなたの支配星が語る今月のテーマ',
+   fn:'openPlanetMessage'},
+  {days:21, icon:'🌀', title:'前世のヒント',           tag:'21日連続解放',
+   desc:'数秘術が示す前世の記憶と才能',
+   fn:'openPastLife'},
+  {days:30, icon:'📜', title:'人生の使命書',           tag:'30日連続解放',
+   desc:'あなたが生まれてきた理由を完全鑑定',
+   fn:'openMissionBook'},
+  {days:50, icon:'💞', title:'魂のパートナー占い',     tag:'50日連続解放',
+   desc:'運命の相手が持つ星座・数秘の特徴',
+   fn:'openSoulPartner'},
+  {days:77, icon:'🔮', title:'数秘×星座クロス鑑定',   tag:'77日連続解放',
+   desc:'2つの占術を統合した深層リーディング',
+   fn:'openCrossReading'},
+  {days:100,icon:'👑', title:'伝説の鑑定',             tag:'LEGEND 100日',
+   desc:'100日参拝者のみが受けられる最上位鑑定',
+   fn:'openLegendReading'},
+];
+
+function buildRewardSection(streak){
+  const unlocked=REWARDS.filter(r=>streak>=r.days);
+  const nextLocked=REWARDS.find(r=>streak<r.days);
+  if(REWARDS.every(r=>streak<r.days)&&streak<3) return ''; // 3日前は表示しない
+
+  let tiles=REWARDS.map(r=>{
+    const isUnlocked=streak>=r.days;
+    const isNew=streak===r.days; // 今日解放されたばかり
+    return '<div class="reward-tile '+(isUnlocked?'unlocked':'locked')+'" '+
+      (isUnlocked?'onclick="'+r.fn+'()"':'')+'>'+
+      (isNew?'<div class="reward-new">NEW!</div>':'')+
+      '<div class="ri">'+r.icon+'</div>'+
+      '<div class="rl">'+r.title+'</div>'+
+      '<div class="rd">'+(isUnlocked?'タップして開く':'🔒 '+r.days+'日連続で解放')+'</div>'+
+    '</div>';
+  }).join('');
+
+  return '<div class="card" style="margin-top:14px;">'+
+    '<div class="sec-title">✦ あなたの解放済み特典</div>'+
+    (unlocked.length===0?'<div style="font-size:13px;color:var(--text3);text-align:center;padding:10px 0;">3日連続参拝で最初の特典が解放されます</div>':'')+
+    '<div class="reward-tiles">'+tiles+'</div>'+
+  '</div>';
+}
+
+// ─── 特典①：隠しカード「宇宙」(Day3) ───
+function openCosmosCard(){
+  const user=getUser();
+  const seed=todaySeed()+(user?user.day:7)*17;
+  const isRev=seededRand(seed,0,1)===1;
+  const ori=isRev?'逆位置':'正位置';
+  const msgs_up=[
+    '「宇宙」が今あなたに告げるのは、あなたの存在そのものが宇宙の一部であるということです。個人の悩みや問題は、宇宙的な視点から見れば小さな波紋に過ぎません。今のあなたは宇宙の流れと完全に同調しており、必要なものは全て最適なタイミングで訪れます。ただ信頼し、受け取ってください。',
+    '「宇宙」カードが示すのは、全ての出来事が完璧な理由とタイミングで起きているということです。今感じている迷いや不安も、宇宙の大きな計画の一部です。あなたには宇宙から特別な使命が与えられており、その道はすでに用意されています。',
+    '「宇宙」が囁きます。あなたの魂は今、巨大な転換点の前に立っています。これまでの全ての経験、喜びも苦しみも、この瞬間のために必要だったのです。宇宙の知性があなたを通して世界に輝こうとしています。',
+  ];
+  const msgs_rv=[
+    '「宇宙（逆）」が示すのは、今あなたが宇宙の流れに抵抗していることへの警告です。コントロールしようとするほど、遠ざかっていくものがあります。手放し、信頼し、流れに乗ることで、宇宙があなたを正しい場所へ導きます。',
+    '「宇宙（逆）」は、目的地にたどり着こうとしているのに古い地図を使い続けているサインです。過去の成功体験や固定概念を手放す時です。宇宙はあなたに新しいナビゲーションを送り続けています。受信してください。',
+  ];
+  const msgs=isRev?msgs_rv:msgs_up;
+  const msg=msgs[seededRand(seed*3,0,msgs.length-1)];
+  showFeature('🌌 隠しカード「宇宙」','3日連続参拝 解放特典',
+    '<div style="text-align:center;padding:20px 0;">'+
+      '<div style="font-size:64px;margin-bottom:10px;animation:float 3s ease-in-out infinite;">🌌</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:20px;color:var(--gold-l);margin-bottom:6px;">THE COSMOS</div>'+
+      '<div style="font-size:13px;color:var(--text3);">宇宙 ／ No.XXIII</div>'+
+      '<div style="display:inline-block;padding:3px 14px;border-radius:999px;margin-top:8px;'+
+        (isRev?'background:rgba(219,39,119,.2);border:1px solid var(--pink);color:var(--pink-l)':'background:rgba(217,119,6,.2);border:1px solid var(--gold);color:var(--gold-ll)')+
+        '">'+ori+'</div>'+
+    '</div>'+
+    '<div class="card gold" style="margin-top:0;">'+
+      '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🌌 宇宙からの特別なメッセージ</div>'+
+      '<div style="font-size:14px;line-height:1.9;">'+msg+'</div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px;">このカードは3日以上連続参拝した方だけが引けます</div>'
+  );
+}
+
+// ─── 特典②：週間運勢鑑定 (Day7) ───
+function openWeeklyFortune(){
+  const user=getUser();
+  if(!user){
+    showFeature('📅 週間運勢鑑定','7日連続参拝 解放特典',
+      '<div class="card"><div class="sec-title">星座を選んでください</div>'+
+      '<div class="zgrid" id="weeklyZGrid"></div></div>'
+    );
+    const g=document.getElementById('weeklyZGrid');
+    if(g) g.innerHTML=ZODIAC.map((z,i)=>'<button class="zbtn" onclick="renderWeeklyFortune('+i+')"><span class="zs">'+z.symbol+'</span><span class="zn">'+z.name+'</span></button>').join('');
+    return;
+  }
+  const z=getZodiac(user.month,user.day);
+  renderWeeklyFortune(ZODIAC.indexOf(z));
+}
+
+function renderWeeklyFortune(idx){
+  const z=ZODIAC[idx];
+  const today=new Date();
+  const dow=today.getDay();
+  // 今週の月曜から日曜を取得
+  const monday=new Date(today);monday.setDate(today.getDate()-(dow===0?6:dow-1));
+  let rows='';
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const sd=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+    const score=calcZodiacDailyScore(idx,sd);
+    const isToday=d.toDateString()===today.toDateString();
+    const bar='<div style="flex:1;height:6px;border-radius:3px;background:rgba(124,58,237,.2);overflow:hidden;">'+
+      '<div style="width:'+score+'%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple),var(--gold-l));"></div></div>';
+    rows+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(isToday?'background:rgba(217,119,6,.08);border-radius:8px;padding:8px;margin:0 -8px;':'')+'border-bottom:1px solid rgba(124,58,237,.1);">'+
+      '<div style="width:40px;font-size:12px;font-weight:'+(isToday?'700':'400')+';color:'+(isToday?'var(--gold-l)':'var(--text3)')+';">'+
+        ['月','火','水','木','金','土','日'][i]+'<br><span style="font-size:10px;">'+(d.getMonth()+1)+'/'+(d.getDate())+'</span>'+
+      '</div>'+bar+
+      '<div style="width:36px;text-align:right;font-size:13px;font-weight:700;color:'+(score>=80?'var(--gold-l)':score>=65?'var(--purple-l)':'var(--text3)')+
+        ';">'+score+'</div>'+
+    '</div>';
+  }
+  const content='<div class="card gold">'+
+    '<div style="text-align:center;font-size:18px;margin-bottom:4px;">'+z.symbol+'</div>'+
+    '<div style="text-align:center;font-size:15px;font-weight:700;margin-bottom:14px;">'+z.name+'の今週の運勢</div>'+
+    rows+
+    '<div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center;">支配星×天体相性・月齢・季節・数秘で算出</div>'+
+  '</div>';
+  showFeature('📅 週間運勢鑑定','7日連続参拝 解放特典',content);
+}
+
+// ─── 特典③：守護星からのメッセージ (Day14) ───
+function openPlanetMessage(){
+  const user=getUser();
+  if(!user){
+    showFeature('🪐 守護星からのメッセージ','14日連続参拝 解放特典',
+      '<div class="card"><div class="sec-title">星座を選んでください</div><div class="zgrid" id="planetZGrid"></div></div>'
+    );
+    const g=document.getElementById('planetZGrid');
+    if(g) g.innerHTML=ZODIAC.map((z,i)=>'<button class="zbtn" onclick="renderPlanetMessage('+i+')"><span class="zs">'+z.symbol+'</span><span class="zn">'+z.name+'</span></button>').join('');
+    return;
+  }
+  const z=getZodiac(user.month,user.day);
+  renderPlanetMessage(ZODIAC.indexOf(z));
+}
+
+function renderPlanetMessage(idx){
+  const z=ZODIAC[idx];const ruler=RULERS[idx];
+  const seed=todaySeed()*(idx+3)*7;
+  const monthMsgs={
+    '太陽':['太陽はあなたに告げます。今月は自己表現の時。あなたの個性と才能を世界に示す絶好の機会が訪れています。自信を持って中心に立ち、光を放ってください。','太陽のエネルギーが今月あなたを強く照らしています。創造的な活動と情熱的な行動が大きな実りをもたらします。'],
+    '月':['月はあなたに囁きます。今月は感情と直感に従う時。表面ではなく内側の声を信頼することで、重要な真実が明らかになります。','月の満ち引きがあなたの感受性を高めています。今月は大切な人との絆を深め、愛情を育む時期です。'],
+    '火星':['火星があなたに命じます。今月は行動の時。躊躇を捨て、情熱のままに突き進んでください。エネルギーは今最高潮にあります。','火星のエネルギーがあなたの闘志を呼び覚ましています。困難な挑戦も今月のあなたには障害ではなく燃料です。'],
+    '水星':['水星があなたに伝えます。今月はコミュニケーションの時。言葉と知識があなたの最強の武器となります。大切なことを伝え、学ぶ時です。','水星の知性があなたの思考を研ぎ澄ませています。今月は情報収集と発信が幸運の鍵となります。'],
+    '木星':['木星があなたを祝福します。今月は拡大と幸運の時。大きな夢を描いてください。木星の恵みがあなたの可能性を無限に広げています。','木星の豊かさのエネルギーが今月あなたを包んでいます。新しい機会に積極的に飛び込むことで、思わぬ幸運が舞い込みます。'],
+    '金星':['金星があなたに微笑みます。今月は愛と美の時。大切な人への愛情表現と、美しいものとの出会いが幸運をもたらします。','金星の恵みが今月の恋愛と人間関係を豊かに彩ります。感謝と愛情を惜しみなく表現してください。'],
+    '土星':['土星があなたに語ります。今月は積み上げの時。焦らず着実に、真剣な取り組みが長期的な成果をもたらします。','土星の試練は成長への招待です。今月直面する課題は、乗り越えた先に大きな実力と自信をもたらします。'],
+    '天王星':['天王星があなたに革命を促します。今月は変化の時。常識を超えた発想と行動が新しい扉を開きます。','天王星の電撃的なエネルギーが今月あなたの意識を刷新します。固定概念を手放し、可能性を広げてください。'],
+    '海王星':['海王星があなたに届けます。今月は夢と直感の時。芸術的インスピレーションと霊的な感受性が最高潮に達しています。','海王星の神秘的な潮流があなたの感性を深く豊かにしています。今月は创造的な活動に時間を投資してください。'],
+    '冥王星':['冥王星があなたに変容を促します。今月は深い内省と再生の時。古い自分を手放すことで、真の力が目覚めます。','冥王星の深淵なエネルギーが今月あなたの魂を揺さぶります。恐れを直視し、変容の力を受け取ってください。'],
+  };
+  const msgList=monthMsgs[ruler]||['守護星があなたを見守っています。'];
+  const msg=msgList[seededRand(seed,0,msgList.length-1)];
+  const content='<div class="card gold">'+
+    '<div style="text-align:center;margin-bottom:14px;">'+
+      '<div style="font-size:13px;color:var(--text3);">'+z.symbol+' '+z.name+'の守護星</div>'+
+      '<div style="font-size:28px;font-weight:700;color:var(--gold-l);margin:8px 0;">'+ruler+'</div>'+
+      '<div style="font-size:11px;color:var(--text3);">'+new Date().getFullYear()+'年'+(new Date().getMonth()+1)+'月のメッセージ</div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🪐 守護星からのメッセージ</div>'+
+    '<div style="font-size:14px;line-height:1.9;">'+msg+'</div>'+
+  '</div>';
+  showFeature('🪐 守護星からのメッセージ','14日連続参拝 解放特典',content);
+}
+
+// ─── 特典④：前世のヒント (Day21) ───
+function openPastLife(){
+  const user=getUser();
+  if(!user){
+    showFeature('🌀 前世のヒント','21日連続参拝 解放特典',
+      '<div class="card" style="text-align:center;color:var(--text3);">命運占いで生年月日を登録してください</div>'
+    );return;
+  }
+  const lp=calcLifePath(user.year+'-'+String(user.month).padStart(2,'0')+'-'+String(user.day).padStart(2,'0'));
+  const pastLives={
+    1:'あなたの魂は前世でリーダーや王の位置にありました。多くの人を導き、新しい時代を切り拓いた経験が今世のあなたの強い個性と先駆者精神に受け継がれています。前世での孤独な決断の重みが、今世では自立と強さとして現れています。',
+    2:'前世のあなたは癒し師や外交官でした。人と人を繋ぐ使命を持ち、争いを和らげることに生涯を捧げました。その経験が今世の深い共感力と繊細な感受性として生きています。前世で得た調和の知恵が、今世の人間関係を豊かにしています。',
+    3:'前世のあなたは芸術家や吟遊詩人でした。美と表現を通じて多くの人の心を動かした魂です。その創造のエネルギーが今世でも溢れ出ており、あなたの言葉や表現は人の心の奥深くに届く力を持っています。',
+    4:'前世のあなたは建築家や職人でした。確かな技術と誠実さで、長く残るものを作り続けた魂です。その堅実さと完成へのこだわりが今世でもあなたの本質として現れています。前世で積み上げた忍耐と技術が今世の強みです。',
+    5:'前世のあなたは冒険家や探検家でした。未知の土地を旅し、多くの文化と経験を積んだ自由な魂です。その好奇心と自由への渇望が今世でも色濃く残り、変化と刺激を求めるあなたの性質の根源となっています。',
+    6:'前世のあなたは医師や修道女など、奉仕と癒しに生涯を捧げた魂でした。愛情と責任感で多くの命を守り育てた経験が、今世の深い愛情と面倒見の良さとして受け継がれています。',
+    7:'前世のあなたは哲学者や神秘家でした。真理を探求し、見えない世界と繋がりながら生きた魂です。その探求の魂が今世でも続いており、表面の奥に潜む本質を見抜くあなたの洞察力はその記憶から生まれています。',
+    8:'前世のあなたは王族や大商人でした。大きな力と富を扱い、多くの人の生活に影響を与えた魂です。その経験が今世のビジネスセンスと権力への感覚として受け継がれています。前世での力の使い方の学びが今世のテーマです。',
+    9:'前世のあなたは聖職者や偉大な人道主義者でした。人類への無条件の愛を体現し、多くの魂を救った経験を持ちます。その普遍的な愛と犠牲の精神が今世の慈悲深さとして現れており、多くの人を助けずにはいられない衝動の源です。',
+    11:'前世のあなたは預言者や霊的指導者でした。高次の意識と繋がり、多くの人に光をもたらした特別な魂です。今世でもその霊的感受性と直感力は突出しており、あなたは単なる個人を超えた使命を持って生まれてきた存在です。',
+    22:'前世のあなたは偉大な建設者でした。国家や宗教施設など、時代を超えて残る壮大なものを作り上げた魂です。今世のあなたには同様の壮大な夢を現実に変える力が宿っており、世界に永続的な影響を与える使命があります。',
+  };
+  const msg=pastLives[lp]||pastLives[9];
+  const content='<div class="card gold">'+
+    '<div style="text-align:center;margin-bottom:16px;">'+
+      '<div style="font-size:40px;animation:float 3s ease-in-out infinite;margin-bottom:8px;">🌀</div>'+
+      '<div style="font-size:13px;color:var(--text3);">ライフパスナンバー '+lp+' が示す前世</div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🌀 前世からあなたへ</div>'+
+    '<div style="font-size:14px;line-height:1.9;">'+msg+'</div>'+
+  '</div>';
+  showFeature('🌀 前世のヒント','21日連続参拝 解放特典',content);
+}
+
+// ─── 特典⑤：人生の使命書 (Day30) ───
+function openMissionBook(){
+  const user=getUser();
+  if(!user){
+    showFeature('📜 人生の使命書','30日連続参拝 解放特典',
+      '<div class="card" style="text-align:center;color:var(--text3);">命運占いで生年月日を登録してください</div>'
+    );return;
+  }
+  const lp=calcLifePath(user.year+'-'+String(user.month).padStart(2,'0')+'-'+String(user.day).padStart(2,'0'));
+  const z=getZodiac(user.month,user.day);
+  const data=NUMEROLOGY[lp]||NUMEROLOGY[9];
+  const ruler=RULERS[ZODIAC.indexOf(z)];
+  const content=
+    '<div class="card gold">'+
+      '<div style="text-align:center;margin-bottom:16px;">'+
+        '<div style="font-size:40px;margin-bottom:6px;">📜</div>'+
+        '<div style="font-size:13px;color:var(--text3);">'+(user.name||z.name)+'さんへの使命書</div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">✦ あなたが生まれてきた理由</div>'+
+      '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">'+data.mission+'</div>'+
+      '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">✦ 魂の才能と使い方</div>'+
+      '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">'+z.essence+'</div>'+
+      '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">✦ 守護星「'+ruler+'」からの使命</div>'+
+      '<div style="font-size:14px;line-height:1.9;">あなたの使命を達成するために、'+ruler+'はあなたに'+
+        (ruler==='太陽'?'輝く勇気と表現力':ruler==='月'?'深い感受性と共感力':ruler==='火星'?'情熱と行動力':
+        ruler==='水星'?'知性とコミュニケーション力':ruler==='木星'?'拡大と楽観の力':
+        ruler==='金星'?'愛と美を創り出す力':ruler==='土星'?'忍耐と構築の力':
+        ruler==='天王星'?'革新と変革の力':ruler==='海王星'?'直感と創造の力':'変容と再生の力')+
+        'を授けています。この力を意識的に使うことが、あなたの使命を全うする鍵です。</div>'+
+    '</div>';
+  showFeature('📜 人生の使命書','30日連続参拝 解放特典',content);
+}
+
+// ─── 特典⑥⑦⑧：Coming Soon系 ───
+function openSoulPartner(){
+  const user=getUser();
+  if(!user){showFeature('💞 魂のパートナー占い','50日連続参拝 解放特典','<div class="card" style="text-align:center;color:var(--text3);">命運占いで生年月日を登録してください</div>');return;}
+  const lp=calcLifePath(user.year+'-'+String(user.month).padStart(2,'0')+'-'+String(user.day).padStart(2,'0'));
+  const soulPartners={1:[4,7],2:[6,9],3:[6,9],4:[1,8],5:[3,7],6:[2,3,9],7:[1,5],8:[4,6],9:[2,3,6],11:[2,22],22:[11,4]};
+  const partners=soulPartners[lp]||[2,7];
+  const elemPartners={火:['風','火'],地:['水','地'],風:['火','風'],水:['地','水']};
+  const z=getZodiac(user.month,user.day);
+  const compatElems=elemPartners[z.element]||['水'];
+  const matchZodiacs=ZODIAC.filter(zz=>compatElems.includes(zz.element));
+  const content='<div class="card gold">'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:10px;">💞 あなたの魂と共鳴するナンバー</div>'+
+    '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">ライフパス '+lp+' のあなたと魂レベルで深く繋がれるのは、ライフパス <b style="color:var(--gold-l);">'+partners.join('・')+'</b> の方です。これらの数を持つ人とは、初対面でも魂が「覚えている」感覚を覚えることがあります。</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:10px;">💞 相性の良い星座のエレメント</div>'+
+    '<div style="font-size:14px;line-height:1.9;">'+z.element+'のエレメントを持つあなたには、<b style="color:var(--gold-l);">'+compatElems.join('・')+'のエレメント</b>の星座の方と魂的な共鳴が生まれやすいです。特に：'+
+    matchZodiacs.slice(0,4).map(zz=>zz.symbol+' '+zz.name).join('、')+'の方とは深い縁が結ばれやすいでしょう。</div>'+
+  '</div>';
+  showFeature('💞 魂のパートナー占い','50日連続参拝 解放特典',content);
+}
+
+function openCrossReading(){
+  const user=getUser();
+  if(!user){showFeature('🔮 数秘×星座クロス鑑定','77日連続参拝 解放特典','<div class="card" style="text-align:center;color:var(--text3);">命運占いで生年月日を登録してください</div>');return;}
+  const lp=calcLifePath(user.year+'-'+String(user.month).padStart(2,'0')+'-'+String(user.day).padStart(2,'0'));
+  const z=getZodiac(user.month,user.day);
+  const data=NUMEROLOGY[lp]||NUMEROLOGY[9];
+  const content='<div class="card gold">'+
+    '<div style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:14px;">'+z.symbol+' '+z.name+' × ライフパス '+lp+'</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🔮 二つの占術が交差する真実</div>'+
+    '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">'+z.element+'のエレメントを持つ'+z.name+'と、'+lp+'という数秘の組み合わせは、'+
+    (z.element==='火'&&[1,9,3].includes(lp)?'情熱と推進力が極限まで高まる、稀有な力強い組み合わせです。あなたの行動力は誰にも止められません。':
+    z.element==='地'&&[4,8,6].includes(lp)?'安定と実践の力が二重に強化された、現実的な成果を生み出す最強の組み合わせです。':
+    z.element==='風'&&[3,5,11].includes(lp)?'知性と表現の力が共鳴し合う、コミュニケーションの天才的な組み合わせです。':
+    z.element==='水'&&[2,6,7].includes(lp)?'感受性と直感が極限まで研ぎ澄まされた、霊的な洞察力を持つ希有な組み合わせです。':
+    'それぞれの特性が互いを補完し合い、内側の豊かさと外側の行動力のバランスが絶妙な組み合わせです。')+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">🔮 この組み合わせが持つ最大の才能</div>'+
+    '<div style="font-size:14px;line-height:1.9;">'+data.mission+'</div>'+
+  '</div>';
+  showFeature('🔮 数秘×星座クロス鑑定','77日連続参拝 解放特典',content);
+}
+
+function openLegendReading(){
+  const user=getUser();
+  if(!user){showFeature('👑 伝説の鑑定','LEGEND 100日達成',`<div class="card" style="text-align:center;color:var(--text3);">命運占いで生年月日を登録してください</div>`);return;}
+  const lp=calcLifePath(user.year+'-'+String(user.month).padStart(2,'0')+'-'+String(user.day).padStart(2,'0'));
+  const z=getZodiac(user.month,user.day);
+  const data=NUMEROLOGY[lp]||NUMEROLOGY[9];
+  const ruler=RULERS[ZODIAC.indexOf(z)];
+  const content='<div class="card gold">'+
+    '<div style="text-align:center;padding:16px 0;">'+
+      '<div style="font-size:48px;animation:float 3s ease-in-out infinite;margin-bottom:10px;">👑</div>'+
+      '<div style="font-size:13px;color:var(--gold-l);letter-spacing:.1em;">100日連続参拝 伝説の証明</div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">👑 あなたという存在の全て</div>'+
+    '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">'+
+      z.symbol+' '+z.name+'としての魂の本質、ライフパス'+lp+'の使命、守護星'+ruler+'の加護。これら全てが統合されたあなたは、宇宙から特別な使命を持って送り込まれた存在です。'+data.essence+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:8px;">👑 伝説の鑑定メッセージ</div>'+
+    '<div style="font-size:14px;line-height:1.9;">100日間、毎日星と向き合い続けたあなたの魂は、すでに次のステージに進んでいます。あなたが今ここにいること自体が奇跡であり、宇宙の意志の現れです。これからのあなたの歩みの全ては、後の人々への道標となるでしょう。あなたは伝説の始まりそのものです。</div>'+
+  '</div>';
+  showFeature('👑 伝説の鑑定','LEGEND 100日達成',content);
+}
+
+function showFeature(title,badge,content){
+  document.getElementById('foTitle').textContent=title;
+  document.getElementById('foBadge').textContent=badge;
+  document.getElementById('foContent').innerHTML=content;
+  document.getElementById('featureOverlay').style.display='block';
+  document.getElementById('featureOverlay').scrollTop=0;
 }
 
 /* ============ INIT ============ */
